@@ -9,6 +9,32 @@ For example, reading a file named 128M+1B will return a file of 128 Megabytes
 plus 1 byte, reading a file named 128M-1B will return a file of 128 Megabytes
 minus 1 byte
 
+Within the filesystem one level of folders may be created. Each of these folders
+can have its extended attributes set to determine the default contents of each
+file within the folder. The attributes of individual files may be overridden,
+and, when mounted as a filesystem using fuse, should be set using 'xattr' for
+OS X, or 'attr' for Linux. The attributes are described below in the 'Extended Usage'
+section.
+
+Files may only be created within the folders and can only be named with a valid
+size descriptor. The names of the files should be a number followed by one of the
+letters [B,K,M,G,T,P,E] (to mean bytes, kilobytes, megabytes ...). Optionally
+an addition or subtraction may be specified to modify the base size of the file.
+
+Examples of valid filenames:
+
+    100K - To mean a 100 kilobyte file.
+    4M - To mean a 4 megabyte file.
+    2G-1B - To mean a file 1 byte smaller than 2 gigabytes.
+    100K+10K - To mean a file 10 kilobytes larger than 100 kilobytes.
+    10E - A ten exabyte file (yes really!)
+    
+File contents are generated as they are read, so it is entirely possible to 'create'
+files that are larger than any available RAM or HD storage. This can be very useful
+for testing large external storage systems, and the +/- operations are useful for
+exploring file size limitations without having to specify a file size as a huge
+number of bytes.
+
 Example Usage
 --------------
 
