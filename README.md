@@ -23,11 +23,11 @@ an addition or subtraction may be specified to modify the base size of the file.
 
 Examples of valid filenames:
 
-    100K - To mean a 100 kilobyte file.
-    4M - To mean a 4 megabyte file.
-    2G-1B - To mean a file 1 byte smaller than 2 gigabytes.
-    100K+10K - To mean a file 10 kilobytes larger than 100 kilobytes.
-    10E - A ten exabyte file (yes really!)
+    100K     - A 100 kilobyte file.
+    4M       - A 4 megabyte file.
+    2G-1B    - A file 1 byte smaller than 2 gigabytes.
+    100K+10K - A file 10 kilobytes larger than 100 kilobytes.
+    10E      - A ten exabyte file (yes really!)
     
 File contents are generated as they are read, so it is entirely possible to 'create'
 files that are larger than any available RAM or HD storage. This can be very useful
