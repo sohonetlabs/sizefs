@@ -18,7 +18,7 @@ section.
 
 Files may only be created within the folders and can only be named with a valid
 size descriptor. The names of the files should be a number followed by one of the
-letters [B,K,M,G,T,P,E] (to mean bytes, kilobytes, megabytes ...). Optionally
+letters B, K, M, G, T, P, or E (to mean bytes, kilobytes, megabytes ...). Optionally
 an addition or subtraction may be specified to modify the base size of the file.
 
 Examples of valid filenames:
