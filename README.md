@@ -20,7 +20,7 @@ size descriptor. The names of the files should be a number followed by one of th
 letters B, K, M, G, T, P or E (to mean bytes, kilobytes, megabytes ...). Optionally
 an addition or subtraction may be specified to modify the base size of the file.
 
-Examples of valid filenames:
+Examples of valid filenames  ::
 
     100K     - A 100 kilobyte file.
     4M       - A 4 megabyte file.
@@ -37,7 +37,7 @@ number of bytes. The files contents can be specified by a set of regular express
 Example Usage
 --------------
 
-Create Size File objects in memory:
+Create Size File objects in memory ::
 
     > from sizefs import SizeFS
     > sfs = SizeFS()
@@ -46,7 +46,7 @@ Create Size File objects in memory:
     > sfs.get_size_file('1K').read(0, 1024)
     > sfs.get_size_file('128KB').read(0, 100))
 
-The folder structure is used to determine the content of the files:
+The folder structure is used to determine the content of the files ::
 
     > sfs.get_size_file('/zeros/5B').read(0, 5)
     out> 00000
@@ -57,7 +57,7 @@ The folder structure is used to determine the content of the files:
     > sfs.get_size_file('/alpha_num/5B').read(0, 5)
     out> TMdEv
 
-Folders can be created to manipulate the data:
+Folders can be created to manipulate the data ::
 
     > sfs.mkdir('/regex1', None)
     > sfs.setxattr('/regex1', 'filler', '0', None)
@@ -101,7 +101,7 @@ Files can be added to SizeFS using sfs.create ::
 
     out> 131073
 
-File content can be generated that matches a regex pattern by adding a directory
+File content can be generated that matches a regex pattern by adding a directory ::
 
     > sfs.mkdir('/regex1')
     > sfs.setxattr('/regex1','filler','a(bcd)*e{4}[a-z03]*')
@@ -157,7 +157,7 @@ If the requested file sizes are too small for the combination of header, footer
 and some padding, then a warning will be logged, but the file will still
 return as much content as possible to fill the exact file size requested.
 
-The file contents will always match the following pattern:
+The file contents will always match the following pattern ::
 
     ^prefix(filler)*(padder)*suffix$
 
