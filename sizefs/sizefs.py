@@ -21,14 +21,12 @@ from time import time
 import re
 import os
 import pyximport
-
+pyximport.install()
 from contents import XegerGen
 
 from fuse import FUSE, FuseOSError, Operations, LoggingMixIn
 
 __author__ = "Mark McArdle, Joel Wright"
-
-pyximport.install()
 
 FILE_REGEX = re.compile("^(?P<size>[0-9]+(\.[0-9])?)(?P<size_si>[EPTGMKB])"
                         "((?P<operator>[\+|\-])(?P<shift>\d+)"
