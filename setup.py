@@ -13,7 +13,7 @@ setup(
     license='LICENSE.txt',
     description='SizeFS is a mock filesystem for creating files of particular'
                 'sizes with specified contents.',
-    long_description=open('README.rst').read(),
+    long_description=open('README.md').read(),
     install_requires=[
         "fusepy>=2.0.2",
         "Cython>=0.19.1",
