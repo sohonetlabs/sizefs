@@ -1,5 +1,15 @@
 #!/usr/bin/env python
 
+"""
+A mock Filesystem that exists in memory only and allows for the creation of
+files of a size specified by the filename.
+
+SizeFS is the main public class representing a Mock FileSystem
+
+SizeFile is a helper class
+
+"""
+
 import logging
 
 from collections import defaultdict
@@ -10,10 +20,15 @@ from time import time
 
 import re
 import os
-import pyximport; pyximport.install()
+import pyximport
+
 from contents import XegerGen
 
 from fuse import FUSE, FuseOSError, Operations, LoggingMixIn
+
+__author__ = "Mark McArdle, Joel Wright"
+
+pyximport.install()
 
 FILE_REGEX = re.compile("^(?P<size>[0-9]+(\.[0-9])?)(?P<size_si>[EPTGMKB])"
                         "((?P<operator>[\+|\-])(?P<shift>\d+)"
@@ -102,8 +117,8 @@ class SizeFS(LoggingMixIn, Operations):
                 attrs = self._file_attrs(_m)
                 size_bytes = attrs['st_size']
 
-                # Get the inherited xattrs from the containing folder and create
-                # the content generator
+                # Get the inherited xattrs from the containing folder and
+                # create the content generator
                 folder_xattrs = self.xattrs[folder]
                 filler = folder_xattrs.get(u'user.filler', None)
                 prefix = folder_xattrs.get(u'user.prefix', None)
@@ -458,6 +473,8 @@ if __name__ == '__main__':
 
     if DEBUG:
         logging.getLogger().setLevel(logging.DEBUG)
-        fuse = FUSE(SizeFS(), argv[1], nolocalcaches=True, cache=False, foreground=True)
+        fuse = FUSE(SizeFS(), argv[1], nolocalcaches=True, cache=False,
+                    foreground=True)
     else:
-        fuse = FUSE(SizeFS(), argv[1], nolocalcaches=True, cache=False, foreground=False)
+        fuse = FUSE(SizeFS(), argv[1], nolocalcaches=True, cache=False,
+                    foreground=False)

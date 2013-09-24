@@ -2,8 +2,7 @@ SizeFS
 ======
 
 A mock Filesystem that exists in memory only and allows for the creation of
-files of a size specified by the filename. The files contents can be specified
-by a set of regular expressions.
+files of a size specified by the filename.
 
 For example, reading a file named 128M+1B will return a file of 128 Megabytes
 plus 1 byte, reading a file named 128M-1B will return a file of 128 Megabytes
@@ -33,7 +32,7 @@ File contents are generated as they are read, so it is entirely possible to 'cre
 files that are larger than any available RAM or HD storage. This can be very useful
 for testing large external storage systems, and the +/- operations are useful for
 exploring file size limitations without having to specify a file size as a huge
-number of bytes.
+number of bytes. The files contents can be specified by a set of regular expressions.
 
 Example Usage
 --------------

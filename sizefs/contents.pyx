@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+
+"""
+Content Generation Code for SizeFS
+"""
+
+__author__ = "Mark McArdle, Joel Wright"
+
 import random
 import logging
 

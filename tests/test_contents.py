@@ -40,7 +40,6 @@ class XegerGenTestCase(unittest.TestCase):
         match = re.match("a[012345]{14}b", contents)
         assert match is not None
 
-
     def test_range(self):
         generator = XegerGen(1024, filler="a[0-9,a-z,A-Z]{5}d", max_random=10)
         contents = generator.read(0, 256)

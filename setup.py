@@ -5,8 +5,8 @@ from distutils.core import setup
 setup(
     name='SizeFS',
     version='0.2.0',
-    author='Joel Wright',
-    author_email='joel.wright@sohonet.com',
+    author='Mark McArdle',
+    author_email='mark.mcardle@sohonet.com',
     packages=['sizefs', 'sizefs.test'],
     scripts=[],
     #url='http://pypi.python.org/pypi/SizeFS/',
