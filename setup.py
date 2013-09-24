@@ -1,4 +1,4 @@
-__author__ = 'jjw'
+__author__ = 'mm'
 
 from distutils.core import setup
 
