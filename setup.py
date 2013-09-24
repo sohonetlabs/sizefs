@@ -12,7 +12,7 @@ setup(
     url='http://pypi.python.org/pypi/SizeFS/',
     download_url='https://github.com/sohonetlabs/sizefs',
     license='LICENSE.txt',
-    description='SizeFS is a mock filesystem for creating files of particular'
+    description='SizeFS is a mock filesystem for creating files of particular '
                 'sizes with specified contents.',
     long_description=open('README.md').read(),
     install_requires=[
