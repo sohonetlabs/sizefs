@@ -2,7 +2,7 @@ SizeFS
 ======
 
 A mock Filesystem that exists in memory only and allows for the creation of
-files of a size specified by the filename.
+files of a size specified by the filename. 
 
 For example, reading a file named 128M+1B will return a file of 128 Megabytes
 plus 1 byte, reading a file named 128M-1B will return a file of 128 Megabytes
@@ -20,7 +20,7 @@ size descriptor. The names of the files should be a number followed by one of th
 letters B, K, M, G, T, P or E (to mean bytes, kilobytes, megabytes ...). Optionally
 an addition or subtraction may be specified to modify the base size of the file.
 
-Examples of valid filenames  ::
+Examples of valid filenames:
 
     100K     - A 100 kilobyte file.
     4M       - A 4 megabyte file.
@@ -37,86 +37,86 @@ number of bytes. The files contents can be specified by a set of regular express
 Example Usage
 --------------
 
-Create Size File objects in memory ::
+Create Size File objects in memory:
 
-    > from sizefs import SizeFS
-    > sfs = SizeFS()
-    > sfs.get_size_file('1B').read(0, 1)
-    > sfs.get_size_file('2B').read(0, 2)
-    > sfs.get_size_file('1K').read(0, 1024)
-    > sfs.get_size_file('128KB').read(0, 100))
+    from sizefs import SizeFS
+    sfs = SizeFS()
+    sfs.get_size_file('1B').read(0, 1)
+    sfs.get_size_file('2B').read(0, 2)
+    sfs.get_size_file('1K').read(0, 1024)
+    sfs.get_size_file('128KB').read(0, 100))
 
-The folder structure is used to determine the content of the files ::
+The folder structure is used to determine the content of the files:
 
-    > sfs.get_size_file('/zeros/5B').read(0, 5)
+    sfs.get_size_file('/zeros/5B').read(0, 5)
     out> 00000
 
-    > sfs.get_size_file('/ones/5B').read(0, 5)
+    sfs.get_size_file('/ones/5B').read(0, 5)
     out> 11111
 
-    > sfs.get_size_file('/alpha_num/5B').read(0, 5)
+    sfs.get_size_file('/alpha_num/5B').read(0, 5)
     out> TMdEv
 
-Folders can be created to manipulate the data ::
+Folders can be created to manipulate the data:
 
-    > sfs.mkdir('/regex1', None)
-    > sfs.setxattr('/regex1', 'filler', '0', None)
-    > print sfs.get_size_file('/alpha_num/5B').read(0, 5)
+    sfs.mkdir('/regex1', None)
+    sfs.setxattr('/regex1', 'filler', '0', None)
+    print sfs.get_size_file('/alpha_num/5B').read(0, 5)
 
     out> 00000
 
-    > sfs.mkdir('/regex2', None)
-    > sfs.setxattr('/regex2', 'filler', '1', None)
-    > print sfs.get_size_file('/regex2/5B').read(0, 5)
+    sfs.mkdir('/regex2', None)
+    sfs.setxattr('/regex2', 'filler', '1', None)
+    print sfs.get_size_file('/regex2/5B').read(0, 5)
 
     out> 11111
 
-    > sfs.mkdir('/regex3', None)
-    > sfs.setxattr('/regex3', 'filler', '[a-zA-Z0-9]', None)
-    > print sfs.get_size_file('/regex3/5B').read(0, 5)
+    sfs.mkdir('/regex3', None)
+    sfs.setxattr('/regex3', 'filler', '[a-zA-Z0-9]', None)
+    print sfs.get_size_file('/regex3/5B').read(0, 5)
 
     out> 1JAbd
 
-Files can be added to SizeFS using sfs.create ::
+Files can be added to SizeFS using sfs.create:
 
-    > sfs.mkdir('/regex3', None)
-    > sfs.setxattr('/regex3', 'filler', '[a-zA-Z0-9]', None)
-    > sfs.create('/regex3/5B', None)
-    > print sfs.read('/regex3/5B', 5, 0, None)
+    sfs.mkdir('/regex3', None)
+    sfs.setxattr('/regex3', 'filler', '[a-zA-Z0-9]', None)
+    sfs.create('/regex3/5B', None)
+    print sfs.read('/regex3/5B', 5, 0, None)
 
     out> aS8yG
 
-    > sfs.create('/regex3/128K', None)
-    > print len(sfs.read('/regex3/128K', 128*1024, 0, None))
+    sfs.create('/regex3/128K', None)
+    print len(sfs.read('/regex3/128K', 128*1024, 0, None))
 
     out> 131072
 
-    > sfs.create('/regex3/128K-1B', None)
-    > print len(sfs.read('/regex3/128K-1B', 128*1024, 0, None))
+    sfs.create('/regex3/128K-1B', None)
+    print len(sfs.read('/regex3/128K-1B', 128*1024, 0, None))
 
     out> 131071
 
-    > sfs.create('/regex3/128K+1B', None)
-    > print len(sfs.read('/alphanum/128K+1B', 128*1024+1, 0, None))
+    sfs.create('/regex3/128K+1B', None)
+    print len(sfs.read('/alphanum/128K+1B', 128*1024+1, 0, None))
 
     out> 131073
 
-File content can be generated that matches a regex pattern by adding a directory ::
+File content can be generated that matches a regex pattern by adding a directory
 
-    > sfs.mkdir('/regex1')
-    > sfs.setxattr('/regex1','filler','a(bcd)*e{4}[a-z03]*')
-    > sfs.create('/regex1','128K')
-    > print len(sfs.open('regex1/128KB').read(0, 128*1024))
+    sfs.mkdir('/regex1')
+    sfs.setxattr('/regex1','filler','a(bcd)*e{4}[a-z03]*')
+    sfs.create('/regex1','128K')
+    print len(sfs.open('regex1/128KB').read(0, 128*1024))
 
     out> 131072
 
-    > sfs.create('/regex1','128K-1B')
-    > print len(sfs.open('regex1/128K-1B').read(0, 128*1024-1))
+    sfs.create('/regex1','128K-1B')
+    print len(sfs.open('regex1/128K-1B').read(0, 128*1024-1))
 
     out> 131071
 
-    > sfs.create('/regex1','128K+1B')
-    > print len(sfs.open('regex1/128KB+1B').read(0, 128*1024+1))
+    sfs.create('/regex1','128K+1B')
+    print len(sfs.open('regex1/128KB+1B').read(0, 128*1024+1))
 
     out> 131073
 
@@ -135,29 +135,29 @@ We can set up to 5 properties:
 Where 'prefix', 'suffix', 'filler', and 'padder' conform to the following
 grammar:
 
-      <Regex> ::= <Pattern>
+    <Regex> ::= <Pattern>
 
-      <Pattern> ::= <Expression>
-                | <Expression> <Pattern>
+    <Pattern> ::= <Expression>
+            | <Expression> <Pattern>
 
-      <Expression> ::= <Char> [<Multiplier>]
-                   | "(" <Pattern> ")" [<Multiplier>]
-                   | "[" <Set> "]" [<Multiplier>]
+    <Expression> ::= <Char> [<Multiplier>]
+               | "(" <Pattern> ")" [<Multiplier>]
+               | "[" <Set> "]" [<Multiplier>]
 
-      <Multiplier> ::= "*"
-                   | "+"
-                   | "?"
-                   | '{' <Num> '}'
+    <Multiplier> ::= "*"
+               | "+"
+               | "?"
+               | '{' <Num> '}'
 
-      <Set> ::= <Char>
-              | <Char> "-" <Char>
-              | <Set> <Set>
+    <Set> ::= <Char>
+          | <Char> "-" <Char>
+          | <Set> <Set>
 
 If the requested file sizes are too small for the combination of header, footer
 and some padding, then a warning will be logged, but the file will still
 return as much content as possible to fill the exact file size requested.
 
-The file contents will always match the following pattern ::
+The file contents will always match the following pattern:
 
     ^prefix(filler)*(padder)*suffix$
 
@@ -184,6 +184,6 @@ Mac Mounting - http://osxfuse.github.com/
 
 From the command line:
 
-    > python ./sizefs.py <mount_point>
+    python ./sizefs.py <mount_point>
 
 
