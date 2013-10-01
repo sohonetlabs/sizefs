@@ -4,7 +4,7 @@
 Content Generation Code for SizeFS
 """
 
-__author__ = "Mark McArdle, Joel Wright"
+__author__ = "Joel Wright, Mark McArdle"
 
 import random
 import logging
