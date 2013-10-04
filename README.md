@@ -32,7 +32,8 @@ File contents are generated as they are read, so it is entirely possible to 'cre
 files that are larger than any available RAM or HD storage. This can be very useful
 for testing large external storage systems, and the +/- operations are useful for
 exploring file size limitations without having to specify a file size as a huge
-number of bytes. The files contents can be specified by a set of regular expressions.
+number of bytes. The contents of each file are specified by a set of regular
+expressions that are initially inherited from the containing folder.
 
 Example Usage
 --------------
