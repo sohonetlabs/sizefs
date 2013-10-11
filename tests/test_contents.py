@@ -19,12 +19,19 @@ class XegerGenTestCase(unittest.TestCase):
         assert contents == "0000000000000000"
 
     def test_padding(self):
+        # Default padding
         generator = XegerGen(64, filler="55555", max_random=10)
         contents = generator.read(0, 63)
         assert contents.endswith("50000")
+        # Longer padding sequence (should be truncated)
         generator = XegerGen(64, filler="55555", padder="longer", max_random=10)
         contents = generator.read(0, 63)
         assert contents.endswith("5long")
+        # Longer padding and suffix
+        generator = XegerGen(64, filler="55555", padder="longer",
+                             max_random=10, suffix="9999999999")
+        contents = generator.read(0, 63)
+        assert contents.endswith("5long9999999999")
 
     def test_prefix(self):
         generator = XegerGen(1024, prefix="11", filler="0", max_random=10)
