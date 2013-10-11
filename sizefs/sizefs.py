@@ -63,8 +63,8 @@ class SizeFS(LoggingMixIn, Operations):
     """
 
     default_files = ['100K', '4M', '4M-1B', '4M+1B']
-    sizes = {'B': 1, 'K': 1024, 'M': 1024**2, 'G': 1024**3,
-             'T': 1024**4, 'P': 1024**5, 'E': 1024**6}
+    sizes = {'B': 1, 'K': 1000, 'M': 1000**2, 'G': 1000**3,
+             'T': 1000**4, 'P': 1000**5, 'E': 1000**6}
 
     def __init__(self):
         self.folders = {}
