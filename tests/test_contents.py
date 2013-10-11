@@ -17,6 +17,16 @@ class XegerGenTestCase(unittest.TestCase):
         contents = generator.read(0, 15)
         assert contents == "0000000000000000"
 
+    def test_prefix(self):
+        generator = XegerGen(1024, prefix="11", filler="0", max_random=10)
+        contents = generator.read(0, 15)
+        assert contents == "1100000000000000"
+
+    def test_suffix(self):
+        generator = XegerGen(16, suffix="1111", filler="0", max_random=10)
+        contents = generator.read(0, 15)
+        assert contents == "0000000000001111"
+    
     def test_repeat(self):
         generator = XegerGen(1024, filler="ab", max_random=10)
         contents = generator.read(0, 15)

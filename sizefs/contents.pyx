@@ -144,16 +144,18 @@ class XegerGen(object):
             self._padder = Xeger("0", max_random)
 
         if prefix is not None:
-            prefix, prefix_len = Xeger(prefix, max_random).generate()
-            self._prefix = prefix
+            prefix_c = []
+            _, prefix_len = Xeger(prefix, max_random).generate(prefix_c, 0)
+            self._prefix = "".join(prefix_c)
             self._prefix_length = prefix_len
         else:
             self._prefix = ""
             self._prefix_length = 0
 
         if suffix is not None:
-            suffix, suffix_len = Xeger(suffix, max_random).generate()
-            self._suffix = suffix
+            suffix_c = []
+            _, suffix_len = Xeger(suffix, max_random).generate(suffix_c, 0)
+            self._suffix = "".join(suffix_c)
             self._suffix_length = suffix_len
         else:
             self._suffix = ""
@@ -201,7 +203,7 @@ class XegerGen(object):
                 self._remainder = ""
                 self._remainder_length = 0
 
-        chunk_size = end - start + 1
+        chunk_size = (end + 1) - start
 
         # Calculate how much content is required
         last_required = False
@@ -211,9 +213,9 @@ class XegerGen(object):
             last_required = True
             last = self._suffix[:self._suffix_length +
                                    (end - (self._size - 1))]
-            still_required = chunk_size - content_length - len(last)
+            still_required = chunk_size - len(last)
         else:
-            still_required = chunk_size - content_length
+            still_required = chunk_size
 
         # Grab content
         while content_length < still_required:
@@ -240,6 +242,9 @@ class XegerGen(object):
                 content.append(overrun_content_string[:this_time])
                 self._remainder = overrun_content_string[this_time:]
                 self._remainder_length = len(self._remainder)
+        elif content_length == still_required:
+            if last_required:
+                content.append(last)
 
         return "".join(content)
 
