@@ -49,33 +49,43 @@ class XegerGenTestCase(unittest.TestCase):
         assert contents == "abababababababab"
 
     def test_star(self):
-        generator = XegerGen(1024, filler="a(bc)*d", max_random=10)
-        contents = generator.read(0, 255)
-        match = re.match("a(bc)*d", contents)
-        assert match is not None
+        for _ in xrange(0, 128):
+            generator = XegerGen(1024, filler="a(bc)*d", max_random=10)
+            contents = generator.read(0, 255)
+            match = re.match("a(bc)*d", contents)
+            assert match is not None
 
     def test_plus(self):
-        generator = XegerGen(1024, filler="a(bc)+d", max_random=10)
-        contents = generator.read(0, 255)
-        match = re.match("a(bc)+d", contents)
-        assert match is not None
+        for _ in xrange(0, 128):
+            generator = XegerGen(1024, filler="a(bc)+d", max_random=10)
+            contents = generator.read(0, 255)
+            match = re.match("a(bc)+d", contents)
+            assert match is not None
 
     def test_numbered_repeat(self):
+        # Test repeats without overrun
         generator = XegerGen(1024, filler="a(bc){5}d", max_random=10)
         contents = generator.read(0, 15)
         assert contents == "abcbcbcbcbcdabcb"
+        assert generator._remainder == "cbcbcbcd"
+        # Test repeats with overrun
+        generator = XegerGen(16, filler="a(bc){5}d", max_random=10)
+        contents = generator.read(0, 15)
+        assert contents == "abcbcbcbcbcd0000"
 
     def test_choice(self):
-        generator = XegerGen(1024, filler="a[012345]{14}b", max_random=10)
-        contents = generator.read(0, 15)
-        match = re.match("a[012345]{14}b", contents)
-        assert match is not None
+        for _ in xrange(0, 128):
+            generator = XegerGen(1024, filler="a[012345]{14}b", max_random=10)
+            contents = generator.read(0, 15)
+            match = re.match("a[012345]{14}b", contents)
+            assert match is not None
 
     def test_range(self):
-        generator = XegerGen(1024, filler="a[0-9,a-z,A-Z]{5}d", max_random=10)
-        contents = generator.read(0, 256)
-        match = re.match("a[0-9,a-z,A-Z]{5}d", contents)
-        assert match is not None
+        for _ in xrange(0, 128):
+            generator = XegerGen(1024, filler="a[0-9,a-z,A-Z]{5}d", max_random=10)
+            contents = generator.read(0, 256)
+            match = re.match("a[0-9,a-z,A-Z]{5}d", contents)
+            assert match is not None
 
 
 if __name__ == '__main__':
