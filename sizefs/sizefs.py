@@ -1,13 +1,27 @@
 #!/usr/bin/env python
-
 """
-A mock Filesystem that exists in memory only and allows for the creation of
-files of a size specified by the filename.
+SizeFS
+
+SizeFS is a mock filesystem that exists in memory only and allows
+for the creation of files of a size specified by the filename.
 
 SizeFS is the main public class representing a Mock FileSystem
 
 SizeFile is a helper class
 
+See
+https://code.google.com/p/macfuse/wiki/OPTIONS
+http://fuse.sourceforge.net/doxygen/index.html
+
+Usage:
+  sizefs.py <mount_point> [--daemon --debug --nolocalcaches]
+  sizefs.py --version
+
+Options:
+  --debug       Debug
+  -d --daemon   Run as Daemon
+  -h --help     Show this screen.
+  --version     Show version.
 """
 
 import logging
@@ -15,11 +29,12 @@ import logging
 from collections import defaultdict
 from errno import ENOENT, EPERM, EEXIST, ENODATA, ENOTEMPTY
 from stat import S_IFDIR, S_IFLNK, S_IFREG
-from sys import argv, exit
 from time import time
-
+from docopt import docopt
+import random
 import re
 import os
+import string
 import pyximport
 pyximport.install()
 from contents import XegerGen
@@ -32,25 +47,57 @@ FILE_REGEX = re.compile("^(?P<size>[0-9]+(\.[0-9])?)(?P<size_si>[EPTGMKB])"
                         "((?P<operator>[\+|\-])(?P<shift>\d+)"
                         "(?P<shift_si>[EPTGMKB]))?$")
 
-DEBUG = False
-
-if DEBUG:
-    logging.debug("Starting SizeFS")
+SIZEFSCHARS = string.ascii_uppercase + string.digits + string.ascii_lowercase
 
 
-class SizeFile(XegerGen):
+class SizeFSZeroGen(object):
     """
-    Size File.
-
-    A Dynamically created file
-
+    Generate Zeros
     """
 
     def read(self, start, end):
-        return super(SizeFile, self).read(start, end)
+        if start <= end:
+            return ''.zfill(end-start+1)
+        else:
+            return ''
 
 
-class SizeFS(LoggingMixIn, Operations):
+class SizeFSOneGen(object):
+    """
+    Generate Ones
+    """
+
+    def read(self, start, end):
+        if start <= end:
+            return '1' * (end-start+1)
+        else:
+            return ''
+
+
+class SizeFSAlphaNumGen(object):
+    """
+    Generate Alpha Numeric Characters
+    """
+
+    def __init__(self):
+        self.pre_seed = ''.join(random.choice(SIZEFSCHARS)
+                                for _x in range(64*1024))
+
+    def read(self, start, end):
+        if start <= end:
+            return self.pre_seed[0:end-start+1]
+        else:
+            return ''
+
+
+class SizeFSGeneratorType(object):
+    ZEROS = 'zeros'
+    ONES = 'ones'
+    ALPHA_NUM = 'alpha_num'
+    REGEX = 'regex'
+
+
+class SizeFS(Operations):
     """
     Size Filesystem.
 
@@ -75,16 +122,20 @@ class SizeFS(LoggingMixIn, Operations):
         now = time()
         self.folders['/'] = dict(st_mode=(S_IFDIR | 0664), st_ctime=now,
                                  st_mtime=now, st_atime=now, st_nlink=0)
+        self.xattrs['/'] = {}
 
         # Create the default dirs (zeros, ones, common)
         self.mkdir('/zeros', (S_IFDIR | 0664))
-        self.setxattr('/zeros', u'user.filler', '0', None)
+        self.setxattr('/zeros', u'user.generator',
+                      SizeFSGeneratorType.ZEROS, None)
         self._add_default_files('/zeros')
         self.mkdir('/ones', (S_IFDIR | 0664))
-        self.setxattr('/ones', u'user.filler', '1', None)
+        self.setxattr('/ones', u'user.generator',
+                      SizeFSGeneratorType.ONES, None)
         self._add_default_files('/ones')
         self.mkdir('/alpha_num', (S_IFDIR | 0664))
-        self.setxattr('/alpha_num', u'user.filler', '[a-zA-Z0-9]', None)
+        self.setxattr('/alpha_num', u'user.generator',
+                      SizeFSGeneratorType.ALPHA_NUM, None)
         self._add_default_files('/alpha_num')
 
     def chmod(self, path, mode):
@@ -101,7 +152,7 @@ class SizeFS(LoggingMixIn, Operations):
         """
         raise FuseOSError(EPERM)
 
-    def create(self, path, mode):
+    def create(self, path, mode, fi=None):
         """
         We'll return EPERM error to indicate that the user cannot create files
         anywhere but within folders created to serve regex filled files, and
@@ -109,7 +160,7 @@ class SizeFS(LoggingMixIn, Operations):
         """
         (folder, filename) = os.path.split(path)
 
-        if folder in self.folders and not folder == "/":
+        if folder in self.folders:
             _m = FILE_REGEX.match(filename)
             if _m:
                 attrs = self._file_attrs(_m)
@@ -118,6 +169,7 @@ class SizeFS(LoggingMixIn, Operations):
                 # Get the inherited xattrs from the containing folder and
                 # create the content generator
                 folder_xattrs = self.xattrs[folder]
+                generator = folder_xattrs.get(u'user.generator', None)
                 filler = folder_xattrs.get(u'user.filler', None)
                 prefix = folder_xattrs.get(u'user.prefix', None)
                 suffix = folder_xattrs.get(u'user.suffix', None)
@@ -125,6 +177,8 @@ class SizeFS(LoggingMixIn, Operations):
                 max_random = folder_xattrs.get(u'user.max_random', u'10')
 
                 self.xattrs[path] = {}
+                if generator is not None:
+                    self.setxattr(path, u'user.generator', generator, None)
                 if filler is not None:
                     self.setxattr(path, u'user.filler', filler, None)
                 if prefix is not None:
@@ -162,7 +216,7 @@ class SizeFS(LoggingMixIn, Operations):
         (folder, filename) = os.path.split(path)
 
         if filename == ".":
-            if folder in self.folder:
+            if folder in self.folders:
                 return self.folders[folder]
 
         if filename == "..":
@@ -170,7 +224,11 @@ class SizeFS(LoggingMixIn, Operations):
             if parent_folder in self.folders:
                 return self.folders[parent_folder]
 
-        raise FuseOSError(ENOENT)
+        try:
+            self.create(path, 0444)
+            return self.files[path]['attrs']
+        except ValueError as _e:
+            raise FuseOSError(ENOENT)
 
     def getxattr(self, path, name, position=0):
         """
@@ -226,38 +284,6 @@ class SizeFS(LoggingMixIn, Operations):
         self.fd += 1
         return self.fd
 
-    def _create_size_file(self, path):
-        """
-        Dynamically creates a SizeFile from a path which can then be read
-        """
-        (folder, filename) = os.path.split(path)
-        parsed = FILE_REGEX.search(filename)
-
-        if parsed:
-            size_bytes = self._calculate_file_size(parsed)
-            if folder == '' or folder == '/':
-                return SizeFile(size_bytes)
-            elif self.folders and folder != '/':
-                filler = self.xattrs[folder].get(u'user.filler', None)
-                prefix = self.xattrs[folder].get(u'user.prefix', None)
-                suffix = self.xattrs[folder].get(u'user.suffix', None)
-                padder = self.xattrs[folder].get(u'user.padder', None)
-                max_random = self.xattrs[folder].get(u'user.max_random', u'10')
-                size_file = SizeFile(size_bytes,
-                                     filler=filler,
-                                     prefix=prefix,
-                                     suffix=suffix,
-                                     padder=padder,
-                                     max_random=int(max_random))
-                return size_file
-            else:
-                raise ValueError('Could not find folder "%s"' % folder)
-        else:
-            raise ValueError('Could not parse file size "%s"' % filename)
-
-    def get_size_file(self, path):
-        return self._create_size_file(path)
-
     def read(self, path, size, offset, fh):
         """
         Returns content based on the pattern of the containing folder
@@ -266,7 +292,13 @@ class SizeFS(LoggingMixIn, Operations):
             content = self.files[path]['generator'].read(offset, offset+size-1)
             return content
         else:
-            raise FuseOSError(ENOENT)
+            try:
+                self.create(path, 0444)
+                content = self.files[path]['generator'].read(
+                    offset, offset+size-1)
+                return content
+            except ValueError as e:
+                raise FuseOSError(ENOENT)
 
     def readdir(self, path, fh):
         contents = ['.', '..']
@@ -449,30 +481,52 @@ class SizeFS(LoggingMixIn, Operations):
         """
         Create a generator from xattr values
         """
-        filler = self.xattrs[path].get(u'user.filler', None)
-        prefix = self.xattrs[path].get(u'user.prefix', None)
-        suffix = self.xattrs[path].get(u'user.suffix', None)
-        padder = self.xattrs[path].get(u'user.padder', None)
-        max_random = self.xattrs[path].get(u'user.max_random', u'10')
+        generator = self.xattrs[path].get(u'user.generator', None)
+        if generator == SizeFSGeneratorType.ALPHA_NUM:
+            return SizeFSAlphaNumGen()
+        elif generator == SizeFSGeneratorType.ZEROS:
+            return SizeFSZeroGen()
+        elif generator == SizeFSGeneratorType.ONES:
+            return SizeFSOneGen()
+        elif generator == SizeFSGeneratorType.REGEX:
+            filler = self.xattrs[path].get(u'user.filler', None)
+            prefix = self.xattrs[path].get(u'user.prefix', None)
+            suffix = self.xattrs[path].get(u'user.suffix', None)
+            padder = self.xattrs[path].get(u'user.padder', None)
+            max_random = self.xattrs[path].get(u'user.max_random', u'10')
 
-        genr = XegerGen(size_bytes,
-                        filler=filler,
-                        prefix=prefix,
-                        suffix=suffix,
-                        padder=padder,
-                        max_random=int(max_random))
+            genr = XegerGen(size_bytes,
+                            filler=filler,
+                            prefix=prefix,
+                            suffix=suffix,
+                            padder=padder,
+                            max_random=int(max_random))
 
-        return genr
+            return genr
+        else:
+            logging.log(logging.WARNING,
+                        'Unknown generator %s for %s' % (generator, path))
+            return SizeFSOneGen()
+
+class SizeFSLogging(LoggingMixIn, SizeFS):
+    """
+    SizeFS with logging MixIn
+    """
 
 if __name__ == '__main__':
-    if len(argv) != 2:
-        print('usage: %s <mountpoint>' % argv[0])
-        exit(1)
-
-    if DEBUG:
-        logging.getLogger().setLevel(logging.DEBUG)
-        fuse = FUSE(SizeFS(), argv[1], nolocalcaches=True, cache=False,
-                    foreground=True)
+    arguments = docopt(__doc__, version='SizeFS 0.2.0')
+    mount_point = arguments['<mount_point>']
+    daemon = not arguments['--daemon']
+    debug = arguments['--debug']
+    nolocalcaches = arguments['--nolocalcaches']
+    if os.path.exists(mount_point):
+        if debug:
+            logging.getLogger().setLevel(logging.DEBUG)
+            logging.log(logging.DEBUG, "Starting Debug Logging")
+            fuse = FUSE(SizeFSLogging(), mount_point,
+                        nolocalcaches=nolocalcaches, foreground=daemon)
+        else:
+            fuse = FUSE(SizeFS(), mount_point, nolocalcaches=nolocalcaches,
+                        foreground=daemon)
     else:
-        fuse = FUSE(SizeFS(), argv[1], nolocalcaches=True, cache=False,
-                    foreground=False)
+        raise IOError('Path "%s" does not exist.' % mount_point)

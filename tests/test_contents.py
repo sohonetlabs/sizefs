@@ -1,13 +1,8 @@
 __author__ = 'jjw'
 
-import os
 import re
 import sys
 import unittest
-
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from sizefs.contents import XegerGen
 
 
@@ -42,7 +37,7 @@ class XegerGenTestCase(unittest.TestCase):
         generator = XegerGen(16, suffix="1111", filler="0", max_random=10)
         contents = generator.read(0, 15)
         assert contents == "0000000000001111"
-    
+
     def test_repeat(self):
         generator = XegerGen(1024, filler="ab", max_random=10)
         contents = generator.read(0, 15)

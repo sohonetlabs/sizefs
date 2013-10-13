@@ -176,6 +176,7 @@ class XegerGen(object):
         end range within a specified prefix or suffix pattern will produce
         appropriate output (this is necessary for metadata testing functions).
         """
+        #return "".zfill(end-start)
         content = []
         content_length = 0
 

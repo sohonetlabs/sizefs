@@ -1,35 +1,39 @@
 __author__ = 'jjw'
 
-import sys
-import os
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from sizefs import SizeFS
+from sizefs import SizeFS, SIZEFSCHARS
 import unittest
 
 
 class SizeFSTestCase(unittest.TestCase):
 
     def test_basic(self):
-        sfs = SizeFS()
-
         # Basic Test
-        self.assertEqual(len(sfs.get_size_file('1B').read(0, 1)), 1)
 
+        sfs = SizeFS()
+        self.assertEqual(len(sfs.read('/zeros/1B', 1, 0, None)), 1)
+        self.assertEqual(len(sfs.read('/ones/1B', 1, 0, None)), 1)
+        self.assertEqual(len(sfs.read('/alpha_num/1B', 1, 0, None)), 1)
+
+    def test_contents(self):
         # Contents Test
-        self.assertEqual(sfs.get_size_file('/zeros/5B').read(0, 5), '00000')
-        self.assertEqual(sfs.get_size_file('/ones/5B').read(0, 5), '11111')
 
+        sfs = SizeFS()
+        self.assertEqual(sfs.read('/zeros/5B', 5, 0, None), '00000')
+        self.assertEqual(sfs.read('/ones/5B', 5, 0, None), '11111')
+        for ch in sfs.read('/alpha_num/5B', 5, 0, None):
+            self.assertIn(ch, SIZEFSCHARS)
+
+    def test_length(self):
         # Length Test
-        self.assertEqual(len(sfs.get_size_file('128B').read(0, 127)), 128)
-        self.assertEqual(len(sfs.get_size_file('128K').read(0, 128*1024-1)),
-                         128*1024)
-        self.assertEqual(len(sfs.get_size_file('128K-1B').read(0, 128*1024)),
-                         128*1024-1)
-        self.assertEqual(len(sfs.get_size_file('128K+1B').read(0, 128*1024+1)),
-                         128*1024+1)
-        self.assertEqual(len(sfs.get_size_file('/alpha_num/5B').read(0, 5)), 5)
+        k128 = 128*1000
+        sfs = SizeFS()
+        self.assertEqual(len(sfs.read('/128B', 128, 0, None)), 128)
+        self.assertEqual(len(sfs.read('/128K', k128-1, 0, None)), k128-1)
+        self.assertEqual(len(sfs.read('/128K', k128, 0, None)), k128)
+        self.assertEqual(len(sfs.read('/128K+1B', k128+1, 0, None)), k128+1)
+        self.assertEqual(len(sfs.read('/zeros/5B', 5, 0, None)), 5)
+        self.assertEqual(len(sfs.read('/ones/5B', 5, 0, None)), 5)
+        self.assertEqual(len(sfs.read('/alpha_num/5B', 5, 0, None)), 5)
 
 
 if __name__ == '__main__':
