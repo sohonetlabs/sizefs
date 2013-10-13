@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 """
-SizeFS
-
 SizeFS is a mock filesystem that exists in memory only and allows
 for the creation of files of a size specified by the filename.
 
 SizeFS is the main public class representing a Mock FileSystem
-
-SizeFile is a helper class
 
 See
 https://code.google.com/p/macfuse/wiki/OPTIONS
@@ -24,13 +20,12 @@ Options:
   --version     Show version.
 """
 
-import logging
-
 from collections import defaultdict
 from errno import ENOENT, EPERM, EEXIST, ENODATA, ENOTEMPTY
 from stat import S_IFDIR, S_IFLNK, S_IFREG
 from time import time
 from docopt import docopt
+import logging
 import random
 import re
 import os

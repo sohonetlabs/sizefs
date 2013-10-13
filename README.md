@@ -42,39 +42,40 @@ Create Size File objects in memory:
 
     from sizefs import SizeFS
     sfs = SizeFS()
-    sfs.get_size_file('1B').read(0, 1)
-    sfs.get_size_file('2B').read(0, 2)
-    sfs.get_size_file('1K').read(0, 1024)
-    sfs.get_size_file('128KB').read(0, 100))
+    sfs.read('/1B', 1, 0, None)
+    sfs.read('/2B', 2, 0, None)
+    sfs.read('/2K', 1024, 0, None)
+    sfs.read('/128K', 1024*128, 0, None)
+    sfs.read('/4G', 4*1024*1024, 0, None)
 
 The folder structure is used to determine the content of the files:
 
-    sfs.get_size_file('/zeros/5B').read(0, 5)
+    sfs.read('/zeros/5B', 5, 0, None).read(0, 5)
     out> 00000
 
-    sfs.get_size_file('/ones/5B').read(0, 5)
+    sfs.read('/ones/5B', 5, 0, None).read(0, 5)
     out> 11111
 
-    sfs.get_size_file('/alpha_num/5B').read(0, 5)
+    sfs.read('/alpha_num/5B', 5, 0, None).read(0, 5)
     out> TMdEv
 
 Folders can be created to manipulate the data:
 
     sfs.mkdir('/regex1', None)
     sfs.setxattr('/regex1', 'filler', '0', None)
-    print sfs.get_size_file('/alpha_num/5B').read(0, 5)
+    print sfs.read('/alpha_num/5B', 5, 0, None).read(0, 5)
 
     out> 00000
 
     sfs.mkdir('/regex2', None)
     sfs.setxattr('/regex2', 'filler', '1', None)
-    print sfs.get_size_file('/regex2/5B').read(0, 5)
+    print sfs.read('/regex2/5B', 5, 0, None).read(0, 5)
 
     out> 11111
 
     sfs.mkdir('/regex3', None)
     sfs.setxattr('/regex3', 'filler', '[a-zA-Z0-9]', None)
-    print sfs.get_size_file('/regex3/5B').read(0, 5)
+    print sfs.read('/regex3/5B', 5, 0, None).read(0, 5)
 
     out> 1JAbd
 
@@ -177,6 +178,14 @@ Random seeks within a file may produce inconsistent results for general file
 contents, however prefix and suffix will always be consistent with the requested
 pattern.
 
+Testing
+------------------------
+
+Requires nose
+
+From the command line:
+
+    nosetests
 
 Mounting as a filesystem
 ------------------------

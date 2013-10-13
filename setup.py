@@ -19,5 +19,6 @@ setup(
     install_requires=[
         "fusepy>=2.0.2",
         "Cython>=0.19.1",
+        "docopt==0.6.1"
         ],
 )
