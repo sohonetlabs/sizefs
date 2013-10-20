@@ -10,7 +10,7 @@ https://code.google.com/p/macfuse/wiki/OPTIONS
 http://fuse.sourceforge.net/doxygen/index.html
 
 Usage:
-  sizefs.py [--debug --nolocalcaches] <mount_point>
+  sizefs.py [--debug] <mount_point>
   sizefs.py --version
 
 Options:
@@ -28,10 +28,10 @@ import logging
 import random
 import re
 import os
-import string
 import pyximport
 pyximport.install()
-from contents import XegerGen
+from contents import (XegerGen, SizeFSZeroGen, SizeFSOneGen,
+    SizeFSAlphaNumGen, SizeFSGeneratorType)
 
 from fuse import FUSE, FuseOSError, Operations, LoggingMixIn
 
@@ -40,55 +40,6 @@ __author__ = "Mark McArdle, Joel Wright"
 FILE_REGEX = re.compile("^(?P<size>[0-9]+(\.[0-9])?)(?P<size_si>[EPTGMKB])"
                         "((?P<operator>[\+|\-])(?P<shift>\d+)"
                         "(?P<shift_si>[EPTGMKB]))?$")
-
-SIZEFSCHARS = string.ascii_uppercase + string.digits + string.ascii_lowercase
-
-
-class SizeFSZeroGen(object):
-    """
-    Generate Zeros
-    """
-
-    def read(self, start, end):
-        if start <= end:
-            return ''.zfill(end-start+1)
-        else:
-            return ''
-
-
-class SizeFSOneGen(object):
-    """
-    Generate Ones
-    """
-
-    def read(self, start, end):
-        if start <= end:
-            return '1' * (end-start+1)
-        else:
-            return ''
-
-
-class SizeFSAlphaNumGen(object):
-    """
-    Generate Alpha Numeric Characters
-    """
-
-    def __init__(self):
-        self.pre_seed = ''.join(random.choice(SIZEFSCHARS)
-                                for _x in range(64*1024))
-
-    def read(self, start, end):
-        if start <= end:
-            return self.pre_seed[0:end-start+1]
-        else:
-            return ''
-
-
-class SizeFSGeneratorType(object):
-    ZEROS = 'zeros'
-    ONES = 'ones'
-    ALPHA_NUM = 'alpha_num'
-    REGEX = 'regex'
 
 
 class SizeFS(Operations):
@@ -218,11 +169,12 @@ class SizeFS(Operations):
             if parent_folder in self.folders:
                 return self.folders[parent_folder]
 
-        try:
-            self.create(path, 0444)
-            return self.files[path]['attrs']
-        except ValueError as _e:
-            raise FuseOSError(ENOENT)
+        raise FuseOSError(ENOENT) 
+        #try:
+        #    self.create(path, 0444)
+        #    return self.files[path]['attrs']
+        #except ValueError as _e:
+        #    raise FuseOSError(ENOENT)
 
     def getxattr(self, path, name, position=0):
         """
@@ -268,6 +220,7 @@ class SizeFS(Operations):
                                   st_size=0, st_ctime=time(), st_mtime=time(),
                                   st_atime=time())
         self.xattrs[path] = {}
+        self.xattrs[path][u'user.generator'] = SizeFSGeneratorType.ONES
         self.folders['/']['st_nlink'] += 1
 
     def open(self, path, flags):
@@ -289,13 +242,14 @@ class SizeFS(Operations):
             content = self.files[path]['generator'].read(offset, offset+size-1)
             return content
         else:
-            try:
-                self.create(path, 0444)
-                content = self.files[path]['generator'].read(
-                    offset, offset+size-1)
-                return content
-            except ValueError as e:
-                raise FuseOSError(ENOENT)
+            raise FuseOSError(ENOENT) 
+        #    try:
+        #        self.create(path, 0444)
+        #        content = self.files[path]['generator'].read(
+        #            offset, offset+size-1)
+        #        return content
+        #    except ValueError as e:
+        #        raise FuseOSError(ENOENT)
 
     def readdir(self, path, fh):
         contents = ['.', '..']
@@ -318,7 +272,7 @@ class SizeFS(Operations):
         return self.data[path]
 
     def removexattr(self, path, name):
-        if not name.startswith(u'user.'):
+        if not '.' in name and not name.startswith(u'user.'):
             name = u'user.%s' % name
         else:
             name = u'%s' % name
@@ -503,6 +457,7 @@ class SizeFS(Operations):
         else:
             logging.log(logging.WARNING,
                         'Unknown generator %s for %s' % (generator, path))
+            self.xattrs[path][u'user.generator'] = SizeFSGeneratorType.ONES
             return SizeFSOneGen()
 
 class SizeFSLogging(LoggingMixIn, SizeFS):
@@ -514,15 +469,14 @@ if __name__ == '__main__':
     arguments = docopt(__doc__, version='SizeFS 0.2.0')
     mount_point = arguments['<mount_point>']
     debug = arguments['--debug']
-    nolocalcaches = arguments['--nolocalcaches']
     if os.path.exists(mount_point):
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
             logging.log(logging.DEBUG, "Starting Debug Logging")
             fuse = FUSE(SizeFSLogging(), mount_point,
-                        nolocalcaches=nolocalcaches, foreground=True)
+                        nolocalcaches=True, foreground=True)
         else:
-            fuse = FUSE(SizeFS(), mount_point, nolocalcaches=nolocalcaches,
+            fuse = FUSE(SizeFS(), mount_point, nolocalcaches=True,
                         foreground=False)
     else:
         raise IOError('Path "%s" does not exist.' % mount_point)

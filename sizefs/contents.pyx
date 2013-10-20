@@ -8,11 +8,60 @@ __author__ = "Joel Wright, Mark McArdle"
 
 import random
 import logging
+import string
 
 DEBUG = False
 
 if DEBUG:
     logging.setLevel(logging.DEBUG)
+
+
+class SizeFSGeneratorType(object):
+    ZEROS = 'zeros'
+    ONES = 'ones'
+    ALPHA_NUM = 'alpha_num'
+    REGEX = 'regex'
+
+
+class SizeFSZeroGen(object):
+    """
+    Generate Zeros
+    """
+
+    def read(self, start, end):
+        if start <= end:
+            return ''.zfill(end-start+1)
+        else:
+            return ''
+
+
+class SizeFSOneGen(object):
+    """
+    Generate Ones
+    """
+
+    def read(self, start, end):
+        if start <= end:
+            return '1' * (end-start+1)
+        else:
+            return ''
+
+
+class SizeFSAlphaNumGen(object):
+    """
+    Generate Alpha Numeric Characters
+    """
+    chars = string.ascii_uppercase + string.digits + string.ascii_lowercase
+
+    def __init__(self):
+        self.pre_seed = ''.join(random.choice(self.chars)
+                                for _x in range(64*1024))
+
+    def read(self, start, end):
+        if start <= end:
+            return self.pre_seed[0:end-start+1]
+        else:
+            return ''
 
 
 class FastRandom(object):
