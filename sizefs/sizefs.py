@@ -170,11 +170,6 @@ class SizeFS(Operations):
                 return self.folders[parent_folder]
 
         raise FuseOSError(ENOENT) 
-        #try:
-        #    self.create(path, 0444)
-        #    return self.files[path]['attrs']
-        #except ValueError as _e:
-        #    raise FuseOSError(ENOENT)
 
     def getxattr(self, path, name, position=0):
         """
@@ -243,13 +238,6 @@ class SizeFS(Operations):
             return content
         else:
             raise FuseOSError(ENOENT) 
-        #    try:
-        #        self.create(path, 0444)
-        #        content = self.files[path]['generator'].read(
-        #            offset, offset+size-1)
-        #        return content
-        #    except ValueError as e:
-        #        raise FuseOSError(ENOENT)
 
     def readdir(self, path, fh):
         contents = ['.', '..']
