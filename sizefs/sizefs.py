@@ -20,7 +20,7 @@ Options:
 """
 
 from collections import defaultdict
-from errno import ENOENT, EPERM, EEXIST, ENODATA, ENOTEMPTY, ENOTSUP
+from errno import ENOENT, EPERM, EEXIST, ENODATA, ENOTEMPTY
 from stat import S_IFDIR, S_IFLNK, S_IFREG
 from time import time
 from docopt import docopt
@@ -188,7 +188,11 @@ class SizeFS(Operations):
                 return path_xattrs[name]
             
             if name.startswith(u'com.apple.'):
-                raise FuseOSError(ENOTSUP)
+                try:
+                    from errno import ENOTSUP
+                    raise FuseOSError(ENOTSUP)
+                except ImportError:
+                    raise FuseOSError(ENODATA)
             else:
                 raise FuseOSError(ENODATA)
 
