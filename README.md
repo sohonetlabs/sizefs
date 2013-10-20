@@ -192,8 +192,14 @@ Mounting as a filesystem
 
 Mac Mounting - http://osxfuse.github.com/
 
-From the command line:
+    Usage:
+      sizefs.py [--debug --nolocalcaches] <mount_pount>
+      sizefs.py --version
+ 
+      Options:
+        --debug           Debug
+        -h --help         Show this screen.
+        --version         Show version.
 
-    python ./sizefs.py <mount_point>
 
 
