@@ -1,3 +1,3 @@
-__all__ = ['SizeFS', 'SizeFile']
+__all__ = ['SizeFS']
 
-from sizefs import SizeFS, SIZEFSCHARS
+from sizefs import SizeFS

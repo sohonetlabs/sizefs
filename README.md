@@ -42,91 +42,86 @@ Create Size File objects in memory:
 
     from sizefs import SizeFS
     sfs = SizeFS()
-    sfs.read('/1B', 1, 0, None)
-    sfs.read('/2B', 2, 0, None)
-    sfs.read('/2K', 1024, 0, None)
-    sfs.read('/128K', 1024*128, 0, None)
-    sfs.read('/4G', 4*1024*1024, 0, None)
+    sfs.read('/ones/1B', 1, 0, None, create=True)
+    sfs.read('/ones/2B', 2, 0, None, create=True)
+    sfs.read('/ones/2K', 1024, 0, None, create=True)
+    sfs.read('/ones/128K', 1024*128, 0, None, create=True)
+    sfs.read('/ones/4G', 4*1024*1024, 0, None, create=True)
 
 The folder structure is used to determine the content of the files:
 
-    sfs.read('/zeros/5B', 5, 0, None).read(0, 5)
+    sfs.read('/zeros/5B', 5, 0, None, create=True).read(0, 5)
     out> 00000
 
-    sfs.read('/ones/5B', 5, 0, None).read(0, 5)
+    sfs.read('/ones/5B', 5, 0, None, create=True).read(0, 5)
     out> 11111
 
-    sfs.read('/alpha_num/5B', 5, 0, None).read(0, 5)
+    sfs.read('/alpha_num/5B', 5, 0, None, create=True).read(0, 5)
     out> TMdEv
 
-Folders can be created to manipulate the data:
+The folders 'ones', 'zeros' and 'alpha_num' are always present,
+but new folders can also be created. When files are created in a
+folder, the xattrs of the folder determine that file's content until
+the file's xattrs are updated:
 
     sfs.mkdir('/regex1', None)
-    sfs.setxattr('/regex1', 'filler', '0', None)
-    print sfs.read('/alpha_num/5B', 5, 0, None).read(0, 5)
+    sfs.setxattr('/regex1', 'generator', 'regex', None)
+    sfs.setxattr('/regex1', 'filler', 'regex', None)
+    print sfs.read('/regex1/5B', 5, 0, None, create=True).read(0, 5)
 
-    out> 00000
+    out> regex
 
-    sfs.mkdir('/regex2', None)
-    sfs.setxattr('/regex2', 'filler', '1', None)
-    print sfs.read('/regex2/5B', 5, 0, None).read(0, 5)
+    sfs.setxattr('/regex1/5B', 'filler', 'string', None)
+    print sfs.read('/regex1/5B', 5, 0, None).read(0, 5)
+
+    out> string
+
+    sfs.setxattr('/regex1/5B', 'filler', 'a{2}b{2}c', None)
+    print sfs.read('/regex1/5B', 5, 0, None).read(0, 5)
+
+    out> aabbc
+
+Files can also be added to SizeFS using sfs.create:
+
+    sfs.mkdir('/folder', None)
+    sfs.create('/folder/5B', None)
+    print sfs.read('/folder/5B', 5, 0, None)
 
     out> 11111
 
-    sfs.mkdir('/regex3', None)
-    sfs.setxattr('/regex3', 'filler', '[a-zA-Z0-9]', None)
-    print sfs.read('/regex3/5B', 5, 0, None).read(0, 5)
-
-    out> 1JAbd
-
-Files can be added to SizeFS using sfs.create:
-
-    sfs.mkdir('/regex3', None)
-    sfs.setxattr('/regex3', 'filler', '[a-zA-Z0-9]', None)
-    sfs.create('/regex3/5B', None)
-    print sfs.read('/regex3/5B', 5, 0, None)
-
-    out> aS8yG
+And as discussed above, the name of the file determines its size:
 
     sfs.create('/regex3/128K', None)
-    print len(sfs.read('/regex3/128K', 128*1024, 0, None))
+    # Try to read more contents than the files contains
+    print len(sfs.read('/regex3/128K', 256*1000, 0, None))
 
-    out> 131072
+    out> 128000
 
     sfs.create('/regex3/128K-1B', None)
-    print len(sfs.read('/regex3/128K-1B', 128*1024, 0, None))
+    # Try to read more contents than the files contains
+    print len(sfs.read('/regex3/128K-1B', 256*1000, 0, None))
 
-    out> 131071
+    out> 127999
 
     sfs.create('/regex3/128K+1B', None)
-    print len(sfs.read('/alphanum/128K+1B', 128*1024+1, 0, None))
+    # Try to read more contents than the files contains
+    print len(sfs.read('/alphanum/128K+1B', 256*1000, 0, None))
 
-    out> 131073
-
-File content can be generated that matches a regex pattern by adding a directory
-
-    sfs.mkdir('/regex1')
-    sfs.setxattr('/regex1','filler','a(bcd)*e{4}[a-z03]*')
-    sfs.create('/regex1','128K')
-    print len(sfs.open('regex1/128KB').read(0, 128*1024))
-
-    out> 131072
-
-    sfs.create('/regex1','128K-1B')
-    print len(sfs.open('regex1/128K-1B').read(0, 128*1024-1))
-
-    out> 131071
-
-    sfs.create('/regex1','128K+1B')
-    print len(sfs.open('regex1/128KB+1B').read(0, 128*1024+1))
-
-    out> 131073
+    out> 128001
 
 
 Extended Usage
 --------------
 
-We can set up to 5 properties:
+The 'generator' xattr property defines the file content and can be set to one
+of:
+
+    ones       - files are filled with ones
+    zeros      - files are filled with zeros
+    alpha_num  - files are filled with alpha numeric characters
+    regex      - files are filled according to a collection of regular expression patterns
+
+We can set up to 5 properties to control the regular expression patterns:
 
     prefix     - defined pattern for the start of a file (default = "")
     suffix     - defined pattern for the end of a file (default = "")

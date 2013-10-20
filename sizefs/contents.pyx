@@ -55,11 +55,20 @@ class SizeFSAlphaNumGen(object):
 
     def __init__(self):
         self.pre_seed = ''.join(random.choice(self.chars)
-                                for _x in range(64*1024))
+                                for _ in range(64*1024))
 
     def read(self, start, end):
         if start <= end:
-            return self.pre_seed[0:end-start+1]
+            toRead = end - start
+            pre_seed_count = 0
+            content = []
+            pre_seed_len = len(self.pre_seed)
+            while toRead > pre_seed_len:
+                content.append(self.pre_seed)
+                toRead -= pre_seed_len
+                pre_seed_count += 1
+            content.append(self.pre_seed[0:toRead+1])
+            return ''.join(content)
         else:
             return ''
 
