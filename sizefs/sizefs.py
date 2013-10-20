@@ -20,7 +20,7 @@ Options:
 """
 
 from collections import defaultdict
-from errno import ENOENT, EPERM, EEXIST, ENODATA, ENOTEMPTY
+from errno import ENOENT, EPERM, EEXIST, ENODATA, ENOTEMPTY, ENOTSUP
 from stat import S_IFDIR, S_IFLNK, S_IFREG
 from time import time
 from docopt import docopt
@@ -230,7 +230,7 @@ class SizeFS(Operations):
 
         If the xattr does not exist we return ENODATA (synonymous with ENOATTR)
         """
-        if not name.startswith(u'user.'):
+        if not '.' in name and not name.startswith(u'user.'):
             name = u'user.%s' % name
         else:
             name = u'%s' % name
@@ -239,6 +239,9 @@ class SizeFS(Operations):
             path_xattrs = self.xattrs[path]
             if name in path_xattrs:
                 return path_xattrs[name]
+            
+            if name.startswith(u'com.apple.'):
+                raise FuseOSError(ENOTSUP)
             else:
                 raise FuseOSError(ENODATA)
 
