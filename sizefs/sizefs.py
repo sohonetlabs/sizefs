@@ -10,14 +10,13 @@ https://code.google.com/p/macfuse/wiki/OPTIONS
 http://fuse.sourceforge.net/doxygen/index.html
 
 Usage:
-  sizefs.py <mount_point> [--daemon --debug --nolocalcaches]
+  sizefs.py <mount_point> [--debug --nolocalcaches]
   sizefs.py --version
 
 Options:
-  --debug       Debug
-  -d --daemon   Run as Daemon
-  -h --help     Show this screen.
-  --version     Show version.
+  --debug           Debug
+  -h --help         Show this screen.
+  --version         Show version.
 """
 
 from collections import defaultdict
@@ -511,7 +510,6 @@ class SizeFSLogging(LoggingMixIn, SizeFS):
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='SizeFS 0.2.0')
     mount_point = arguments['<mount_point>']
-    daemon = not arguments['--daemon']
     debug = arguments['--debug']
     nolocalcaches = arguments['--nolocalcaches']
     if os.path.exists(mount_point):
@@ -519,9 +517,9 @@ if __name__ == '__main__':
             logging.getLogger().setLevel(logging.DEBUG)
             logging.log(logging.DEBUG, "Starting Debug Logging")
             fuse = FUSE(SizeFSLogging(), mount_point,
-                        nolocalcaches=nolocalcaches, foreground=daemon)
+                        nolocalcaches=nolocalcaches, foreground=True)
         else:
             fuse = FUSE(SizeFS(), mount_point, nolocalcaches=nolocalcaches,
-                        foreground=daemon)
+                        foreground=False)
     else:
         raise IOError('Path "%s" does not exist.' % mount_point)
