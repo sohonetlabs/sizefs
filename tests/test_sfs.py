@@ -22,7 +22,7 @@ class SizeFSTestCase(unittest.TestCase):
         self.assertEqual(sfs.read('/zeros/5B', 5, 0, None, create=True), '00000')
         self.assertEqual(sfs.read('/ones/5B', 5, 0, None, create=True), '11111')
         for ch in sfs.read('/alpha_num/5B', 5, 0, None, create=True):
-            self.assertIn(ch, SizeFSAlphaNumGen.chars)
+            self.assertTrue(ch in SizeFSAlphaNumGen.chars)
 
     def test_length(self):
         # Length Test
