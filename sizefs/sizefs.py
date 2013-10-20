@@ -10,7 +10,7 @@ https://code.google.com/p/macfuse/wiki/OPTIONS
 http://fuse.sourceforge.net/doxygen/index.html
 
 Usage:
-  sizefs.py <mount_point> [--debug --nolocalcaches]
+  sizefs.py [--debug --nolocalcaches] <mount_point>
   sizefs.py --version
 
 Options:
