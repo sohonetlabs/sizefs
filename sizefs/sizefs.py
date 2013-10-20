@@ -467,7 +467,7 @@ class SizeFSLogging(LoggingMixIn, SizeFS):
     """
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='SizeFS 0.2.0')
+    arguments = docopt(__doc__, version='SizeFS 0.2.2')
     mount_point = arguments['<mount_point>']
     debug = arguments['--debug']
     if os.path.exists(mount_point):

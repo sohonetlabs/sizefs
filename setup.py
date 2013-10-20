@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='SizeFS',
-    version='0.2.0',
+    version='0.2.2',
     author='Mark McArdle',
     author_email='mark.mcardle@sohonet.com',
     packages=['sizefs', 'tests'],
