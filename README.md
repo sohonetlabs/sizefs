@@ -42,21 +42,21 @@ Create Size File objects in memory:
 
     from sizefs import SizeFS
     sfs = SizeFS()
-    sfs.read('/ones/1B', 1, 0, None, create=True)
-    sfs.read('/ones/2B', 2, 0, None, create=True)
-    sfs.read('/ones/2K', 1024, 0, None, create=True)
-    sfs.read('/ones/128K', 1024*128, 0, None, create=True)
-    sfs.read('/ones/4G', 4*1024*1024, 0, None, create=True)
+    sfs.read('/ones/1B', 1, 0, None)
+    sfs.read('/ones/2B', 2, 0, None)
+    sfs.read('/ones/2K', 1024, 0, None)
+    sfs.read('/ones/128K', 1024*128, 0, None)
+    sfs.read('/ones/4G', 4*1024*1024, 0, None)
 
 The folder structure is used to determine the content of the files:
 
-    sfs.read('/zeros/5B', 5, 0, None, create=True).read(0, 5)
+    sfs.read('/zeros/5B', 5, 0, None).read(0, 5)
     out> 00000
 
-    sfs.read('/ones/5B', 5, 0, None, create=True).read(0, 5)
+    sfs.read('/ones/5B', 5, 0, None).read(0, 5)
     out> 11111
 
-    sfs.read('/alpha_num/5B', 5, 0, None, create=True).read(0, 5)
+    sfs.read('/alpha_num/5B', 5, 0, None).read(0, 5)
     out> TMdEv
 
 The folders 'ones', 'zeros' and 'alpha_num' are always present,
@@ -67,7 +67,7 @@ the file's xattrs are updated:
     sfs.mkdir('/regex1', None)
     sfs.setxattr('/regex1', 'generator', 'regex', None)
     sfs.setxattr('/regex1', 'filler', 'regex', None)
-    print sfs.read('/regex1/5B', 5, 0, None, create=True).read(0, 5)
+    print sfs.read('/regex1/5B', 5, 0, None).read(0, 5)
 
     out> regex
 
@@ -81,7 +81,7 @@ the file's xattrs are updated:
 
     out> aabbc
 
-Files can also be added to SizeFS using sfs.create:
+Files can also be added to SizeFS without reading their contents using sfs.create():
 
     sfs.mkdir('/folder', None)
     sfs.create('/folder/5B', None)
@@ -91,19 +91,16 @@ Files can also be added to SizeFS using sfs.create:
 
 And as discussed above, the name of the file determines its size:
 
-    sfs.create('/regex3/128K', None)
     # Try to read more contents than the files contains
     print len(sfs.read('/regex3/128K', 256*1000, 0, None))
 
     out> 128000
 
-    sfs.create('/regex3/128K-1B', None)
     # Try to read more contents than the files contains
     print len(sfs.read('/regex3/128K-1B', 256*1000, 0, None))
 
     out> 127999
 
-    sfs.create('/regex3/128K+1B', None)
     # Try to read more contents than the files contains
     print len(sfs.read('/alphanum/128K+1B', 256*1000, 0, None))
 
