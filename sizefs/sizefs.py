@@ -173,8 +173,17 @@ class SizeFS(Operations):
             else:
                 raise FuseOSError(ENOENT)
 
-        self.create(path, 0444)
-        return self.getattr(path)
+        if folder == "/":
+            raise FuseOSError(ENOENT)
+        else:
+            try:
+                self.create(path, 0444)
+                return self.getattr(path)
+            except FuseOSError as e:
+                if e.errno == EPERM:
+                    raise FuseOSError(ENOENT)
+                else:
+                    raise e
 
     def getxattr(self, path, name, position=0):
         """
