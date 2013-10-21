@@ -9,15 +9,14 @@ class SizeFSTestCase(unittest.TestCase):
 
     def test_basic(self):
         # Basic Test
-
         sfs = SizeFS()
+        self.assertEqual(len(sfs.read('/1B', 1, 0, None)), 1)
         self.assertEqual(len(sfs.read('/zeros/1B', 1, 0, None)), 1)
         self.assertEqual(len(sfs.read('/ones/1B', 1, 0, None)), 1)
         self.assertEqual(len(sfs.read('/alpha_num/1B', 1, 0, None)), 1)
 
     def test_contents(self):
         # Contents Test
-
         sfs = SizeFS()
         self.assertEqual(sfs.read('/zeros/5B', 5, 0, None), '00000')
         self.assertEqual(sfs.read('/ones/5B', 5, 0, None), '11111')
