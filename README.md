@@ -42,13 +42,13 @@ Create Size File objects in memory:
 
     from sizefs import SizeFS
     sfs = SizeFS()
-    sfs.read('/ones/1B', 1, 0, None)
-    sfs.read('/ones/2B', 2, 0, None)
-    sfs.read('/ones/2K', 1024, 0, None)
-    sfs.read('/ones/128K', 1024*128, 0, None)
-    sfs.read('/ones/4G', 4*1024*1024, 0, None)
+    sfs.read('/1B', 1, 0, None)
+    sfs.read('/2B', 2, 0, None)
+    sfs.read('/2K', 1024, 0, None)
+    sfs.read('/128K', 1024*128, 0, None)
+    sfs.read('/4G', 4*1024*1024, 0, None)
 
-The folder structure is used to determine the content of the files:
+The folder structure can be used to determine the content of the files:
 
     sfs.read('/zeros/5B', 5, 0, None).read(0, 5)
     out> 00000
