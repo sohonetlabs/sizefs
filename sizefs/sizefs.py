@@ -263,6 +263,10 @@ class SizeFS(Operations):
                     (parent, folder_name) = os.path.split(folder_path)
                     if parent == path:
                         contents.append(folder_name)
+            for file_path in self.files:
+                (folder, filename) = os.path.split(file_path)
+                if folder == "/":
+                    contents.append(filename)
         else:
             for file_path in self.files:
                 if file_path.startswith(path):
