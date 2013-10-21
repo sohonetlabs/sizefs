@@ -163,13 +163,18 @@ class SizeFS(Operations):
         if filename == ".":
             if folder in self.folders:
                 return self.folders[folder]
+            else:
+                raise FuseOSError(ENOENT) 
 
         if filename == "..":
             (parent_folder, child_folder) = os.path.split(folder)
             if parent_folder in self.folders:
                 return self.folders[parent_folder]
+            else:
+                raise FuseOSError(ENOENT)
 
-        raise FuseOSError(ENOENT)
+        self.create(path, 0444)
+        return self.getattr(path)
 
     def getxattr(self, path, name, position=0):
         """
@@ -233,7 +238,7 @@ class SizeFS(Operations):
         self.fd += 1
         return self.fd
 
-    def read(self, path, size, offset, fh, create=False):
+    def read(self, path, size, offset, fh):
         """
         Returns content based on the pattern of the containing folder
         """
@@ -246,11 +251,8 @@ class SizeFS(Operations):
                 content = self.files[path]['generator'].read(offset, end_of_content)
                 return content
         else:
-            if not create:
-                raise FuseOSError(ENOENT)
-            else:
-                self.create(path, 0444)
-                return self.read(path, size, offset, fh, create=create)
+            self.create(path, 0444)
+            return self.read(path, size, offset, fh)
 
     def readdir(self, path, fh):
         contents = ['.', '..']
