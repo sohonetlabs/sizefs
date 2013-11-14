@@ -257,7 +257,8 @@ class SizeFS(Operations):
                 return ""
             else:
                 end_of_content = min(offset+size-1, size_bytes-1)
-                content = self.files[path]['generator'].read(offset, end_of_content)
+                content = self.files[path]['generator'].read(offset,
+                                                             end_of_content)
                 return content
         else:
             self.create(path, 0444)
@@ -475,6 +476,7 @@ class SizeFS(Operations):
                         'Unknown generator %s for %s' % (generator, path))
             self.xattrs[path][u'user.generator'] = SizeFSGeneratorType.ONES
             return SizeFSOneGen()
+
 
 class SizeFSLogging(LoggingMixIn, SizeFS):
     """
