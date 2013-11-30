@@ -163,13 +163,27 @@ class SizeFS(Operations):
         if filename == ".":
             if folder in self.folders:
                 return self.folders[folder]
+            else:
+                raise FuseOSError(ENOENT) 
 
         if filename == "..":
             (parent_folder, child_folder) = os.path.split(folder)
             if parent_folder in self.folders:
                 return self.folders[parent_folder]
+            else:
+                raise FuseOSError(ENOENT)
 
-        raise FuseOSError(ENOENT)
+        if folder == "/":
+            raise FuseOSError(ENOENT)
+        else:
+            try:
+                self.create(path, 0444)
+                return self.getattr(path)
+            except FuseOSError as e:
+                if e.errno == EPERM:
+                    raise FuseOSError(ENOENT)
+                else:
+                    raise e
 
     def getxattr(self, path, name, position=0):
         """
@@ -233,7 +247,7 @@ class SizeFS(Operations):
         self.fd += 1
         return self.fd
 
-    def read(self, path, size, offset, fh, create=False):
+    def read(self, path, size, offset, fh):
         """
         Returns content based on the pattern of the containing folder
         """
@@ -243,14 +257,12 @@ class SizeFS(Operations):
                 return ""
             else:
                 end_of_content = min(offset+size-1, size_bytes-1)
-                content = self.files[path]['generator'].read(offset, end_of_content)
+                content = self.files[path]['generator'].read(offset,
+                                                             end_of_content)
                 return content
         else:
-            if not create:
-                raise FuseOSError(ENOENT)
-            else:
-                self.create(path, 0444)
-                return self.read(path, size, offset, fh, create=create)
+            self.create(path, 0444)
+            return self.read(path, size, offset, fh)
 
     def readdir(self, path, fh):
         contents = ['.', '..']
@@ -261,6 +273,10 @@ class SizeFS(Operations):
                     (parent, folder_name) = os.path.split(folder_path)
                     if parent == path:
                         contents.append(folder_name)
+            for file_path in self.files:
+                (folder, filename) = os.path.split(file_path)
+                if folder == "/":
+                    contents.append(filename)
         else:
             for file_path in self.files:
                 if file_path.startswith(path):
@@ -460,6 +476,7 @@ class SizeFS(Operations):
                         'Unknown generator %s for %s' % (generator, path))
             self.xattrs[path][u'user.generator'] = SizeFSGeneratorType.ONES
             return SizeFSOneGen()
+
 
 class SizeFSLogging(LoggingMixIn, SizeFS):
     """
