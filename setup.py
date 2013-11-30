@@ -4,7 +4,7 @@ from distutils.extension import Extension
 
 setup(
     name='SizeFS',
-    version='0.2.2',
+    version='0.2.3',
     author='Mark McArdle',
     author_email='mark.mcardle@sohonet.com',
     packages=['sizefs', 'tests'],
