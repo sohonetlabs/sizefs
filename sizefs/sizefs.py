@@ -28,8 +28,6 @@ import logging
 import random
 import re
 import os
-import pyximport
-pyximport.install()
 from contents import (XegerGen, SizeFSZeroGen, SizeFSOneGen,
     SizeFSAlphaNumGen, SizeFSGeneratorType)
 
