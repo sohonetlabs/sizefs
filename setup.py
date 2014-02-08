@@ -5,7 +5,7 @@ from Cython.Build import cythonize
 
 setup(
     name='SizeFS',
-    version='0.2.4',
+    version='0.2.5',
     author='Mark McArdle',
     author_email='mark.mcardle@sohonet.com',
     packages=['sizefs', 'tests'],
