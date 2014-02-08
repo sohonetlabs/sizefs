@@ -1,5 +1,7 @@
 __author__ = 'mm'
 from distutils.core import setup
+from distutils.extension import Extension
+from Cython.Build import cythonize
 
 setup(
     name='SizeFS',
@@ -11,6 +13,9 @@ setup(
     url='http://pypi.python.org/pypi/SizeFS/',
     download_url='https://github.com/sohonetlabs/sizefs',
     license='LICENSE.txt',
+    ext_modules=[
+        Extension("sizefs.contents", ["sizefs/contents.pyx"]),
+    ] + cythonize("sizefs/contents.pyx",),
     description='SizeFS is a mock filesystem for creating files of particular '
                 'sizes with specified contents.',
     long_description=open('README.txt').read(),
@@ -19,5 +24,5 @@ setup(
         "fusepy>=2.0.2",
         "Cython>=0.19.1",
         "docopt==0.6.1"
-        ],
+    ],
 )

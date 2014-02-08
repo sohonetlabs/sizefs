@@ -50,13 +50,13 @@ Create Size File objects in memory:
 
 The folder structure can be used to determine the content of the files:
 
-    sfs.read('/zeros/5B', 5, 0, None).read(0, 5)
+    sfs.read('/zeros/5B', 5, 0, None)
     out> 00000
 
-    sfs.read('/ones/5B', 5, 0, None).read(0, 5)
+    sfs.read('/ones/5B', 5, 0, None)
     out> 11111
 
-    sfs.read('/alpha_num/5B', 5, 0, None).read(0, 5)
+    sfs.read('/alpha_num/5B', 5, 0, None)
     out> TMdEv
 
 The folders 'ones', 'zeros' and 'alpha_num' are always present,
@@ -67,17 +67,17 @@ the file's xattrs are updated:
     sfs.mkdir('/regex1', None)
     sfs.setxattr('/regex1', 'generator', 'regex', None)
     sfs.setxattr('/regex1', 'filler', 'regex', None)
-    print sfs.read('/regex1/5B', 5, 0, None).read(0, 5)
+    print sfs.read('/regex1/5B', 5, 0, None)
 
     out> regex
 
     sfs.setxattr('/regex1/5B', 'filler', 'string', None)
-    print sfs.read('/regex1/5B', 5, 0, None).read(0, 5)
+    print sfs.read('/regex1/5B', 5, 0, None)
 
     out> string
 
     sfs.setxattr('/regex1/5B', 'filler', 'a{2}b{2}c', None)
-    print sfs.read('/regex1/5B', 5, 0, None).read(0, 5)
+    print sfs.read('/regex1/5B', 5, 0, None)
 
     out> aabbc
 
