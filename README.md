@@ -35,35 +35,42 @@ exploring file size limitations without having to specify a file size as a huge
 number of bytes. The contents of each file are specified by a set of regular
 expressions that are initially inherited from the containing folder.
 
-Example Usage
---------------
+Example Usage - SizeFS
+----------------------
 
 Create Size File objects in memory:
 
     from sizefs import SizeFS
     sfs = SizeFS()
-    sfs.read('/1B', 1, 0, None)
-    sfs.read('/2B', 2, 0, None)
-    sfs.read('/2K', 1024, 0, None)
-    sfs.read('/128K', 1024*128, 0, None)
-    sfs.read('/4G', 4*1024*1024, 0, None)
+    sfs.open('/1B').read()
+    sfs.open('/20B').read(20)
+    sfs.open('/2K').read(1024)
+    sfs.open('/128K').read(1024*128)
+    sfs.open('/4G').read(4*1024*1024)
 
 The folder structure can be used to determine the content of the files:
 
-    sfs.read('/zeros/5B', 5, 0, None)
+    sfs.open('/zeros/5B').read(5)
     out> 00000
 
-    sfs.read('/ones/5B', 5, 0, None)
+    sfs.open('/ones/5B').read(5)
     out> 11111
 
-    sfs.read('/alpha_num/5B', 5, 0, None)
+    sfs.open('/alpha_num/5B').read(5)
     out> TMdEv
 
-The folders 'ones', 'zeros' and 'alpha_num' are always present,
-but new folders can also be created. When files are created in a
-folder, the xattrs of the folder determine that file's content until
-the file's xattrs are updated:
 
+Extended Usage - SizefsFuse
+---------------------------
+
+The folders 'ones', 'zeros' and 'alpha\_num' are always present, but new
+folders can also be created. When files are created in a folder, the
+xattrs of the folder determine that file's content until the file's
+xattrs are updated:
+
+
+    from sizefs.sizefsFuse import SizefsFuse
+    sfs = SizefsFuse()
     sfs.mkdir('/regex1', None)
     sfs.setxattr('/regex1', 'generator', 'regex', None)
     sfs.setxattr('/regex1', 'filler', 'regex', None)
@@ -81,7 +88,9 @@ the file's xattrs are updated:
 
     out> aabbc
 
-Files can also be added to SizeFS without reading their contents using sfs.create():
+Files can also be added to SizeFS without reading their contents using
+sfs.create():
+
 
     sfs.mkdir('/folder', None)
     sfs.create('/folder/5B', None)
@@ -90,6 +99,8 @@ Files can also be added to SizeFS without reading their contents using sfs.creat
     out> 11111
 
 And as discussed above, the name of the file determines its size:
+
+
 
     # Try to read more contents than the files contains
     print len(sfs.read('/regex3/128K', 256*1000, 0, None))
@@ -106,9 +117,6 @@ And as discussed above, the name of the file determines its size:
 
     out> 128001
 
-
-Extended Usage
---------------
 
 The 'generator' xattr property defines the file content and can be set to one
 of:
