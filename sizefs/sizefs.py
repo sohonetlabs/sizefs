@@ -46,6 +46,14 @@ See
 https://code.google.com/p/macfuse/wiki/OPTIONS
 http://fuse.sourceforge.net/doxygen/index.html
 
+Usage:
+  sizefs.py [--debug] <mount_point>
+  sizefs.py --version
+
+Options:
+  --debug           Debug
+  -h --help         Show this screen.
+  --version         Show version.
 """
 
 import logging
@@ -57,9 +65,9 @@ from fuse import FUSE
 from fs.path import iteratepath, pathsplit, normpath
 from fs.base import FS, synchronize
 from fs.errors import ResourceNotFoundError, ResourceInvalidError
-from .contents import (SizeFSOneGen, SizeFSZeroGen, SizeFSAlphaNumGen, ONE_K,
+from contents import (SizeFSOneGen, SizeFSZeroGen, SizeFSAlphaNumGen, ONE_K,
                        FILE_REGEX)
-from .sizefsFuse import SizeFSLogging, SizefsFuse
+from sizefsFuse import SizeFSLogging, SizefsFuse
 
 
 __author__ = "Mark McArdle, Joel Wright"
