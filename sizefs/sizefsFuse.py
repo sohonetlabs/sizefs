@@ -452,6 +452,19 @@ class SizefsFuse(Operations):
             self.xattrs[path][u'user.generator'] = SizeFSGeneratorType.ONES
             return SizeFSOneGen()
 
+    @classmethod
+    def mount(cls, mount_point, debug=False):
+        from fuse import FUSE
+        if debug:
+            logging.getLogger().setLevel(logging.DEBUG)
+            logging.log(logging.DEBUG, "Starting Debug Logging")
+
+            return FUSE(SizeFSLogging(), mount_point, nolocalcaches=True,
+                        foreground=True)
+        else:
+            return FUSE(SizefsFuse(), mount_point, nolocalcaches=True,
+                        foreground=False)
+
 
 class SizeFSLogging(LoggingMixIn, SizefsFuse):
     """

@@ -61,12 +61,11 @@ import datetime
 import os
 import stat
 from docopt import docopt
-from fuse import FUSE
 from fs.path import iteratepath, pathsplit, normpath
 from fs.base import FS, synchronize
 from fs.errors import ResourceNotFoundError, ResourceInvalidError
 from contents import (SizeFSOneGen, SizeFSZeroGen, SizeFSAlphaNumGen, ONE_K,
-                       FILE_REGEX)
+                      FILE_REGEX)
 from sizefsFuse import SizeFSLogging, SizefsFuse
 
 
@@ -130,9 +129,6 @@ class SizeFile(object):
         if not filler:
             self.filler = SizeFSZeroGen()
         self.path = path
-        self._created_time = datetime.datetime.now()
-        self._modified_time = datetime.datetime.now()
-        self._accessed_time = datetime.datetime.now()
 
     def close(self):
         """ close the file to prevent further reading """
@@ -171,6 +167,11 @@ class SizeFile(object):
     def flush(self):
         """ flush the contents """
         pass
+
+    def reset(self):
+        """ Reset the object the contents """
+        self.closed = False
+        self.pos = 0
 
 
 class DirEntry(object):  # pylint: disable=R0902
@@ -390,11 +391,12 @@ class SizeFS(FS):  # pylint: disable=R0902,R0904,R0921
                 if file_dir_entry.isdir():
                     raise ResourceInvalidError(path)
                 file_dir_entry.accessed_time = datetime.datetime.now()
+                file_dir_entry.mem_file.reset()
                 return file_dir_entry.mem_file
             else:
                 size = __get_size__(file_name)
                 mem_file = SizeFile(path, size, filler=parent_dir_entry.filler)
-                mem_file.seek(0)
+                mem_file.reset()
                 new_entry = DirEntry(DirEntry.FILE_ENTRY, path,
                                      mem_file=mem_file)
 
@@ -418,13 +420,6 @@ if __name__ == '__main__':
     MOUNT_POINT = ARGUMENTS['<mount_point>']
     DEBUG = ARGUMENTS['--debug']
     if os.path.exists(MOUNT_POINT):
-        if DEBUG:
-            logging.getLogger().setLevel(logging.DEBUG)
-            logging.log(logging.DEBUG, "Starting Debug Logging")
-            FUSE(SizeFSLogging(), MOUNT_POINT, nolocalcaches=True,
-                 foreground=True)
-        else:
-            FUSE(SizefsFuse(), MOUNT_POINT, nolocalcaches=True,
-                 foreground=False)
+        SizefsFuse.mount(MOUNT_POINT, debug=DEBUG)
     else:
         raise IOError('Path "%s" does not exist.' % MOUNT_POINT)

@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name='SizeFS',
-    version='0.2.7',
+    version='0.3.0',
     author='Mark McArdle',
     author_email='mark.mcardle@sohonet.com',
     packages=['sizefs', 'tests'],
