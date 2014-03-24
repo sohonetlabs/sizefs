@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-from fs.errors import ResourceInvalidError, ResourceNotFoundError
 import unittest2
+from fs.errors import ResourceInvalidError, ResourceNotFoundError
 from sizefs.sizefs import SizeFS, SizeFile, DirEntry, doc_test
 from sizefs.contents import (SizeFSAlphaNumGen, ONE_K, SizeFSOneGen,
                              SizeFSZeroGen)
-
+from sizefs.sizefsFuse import SizefsFuse
 
 __author__ = "Mark McArdle, Joel Wright"
 
@@ -175,10 +175,37 @@ class SizeFSTestCase(unittest2.TestCase):
                          k128)
         self.assertEqual(len(self.sfs.open('/zeros/128K+1B').read(k128+1)),
                          k128+1)
+
+        # Read same file twice
         self.assertEqual(len(self.sfs.open('/zeros/64K').read(k128)), k64)
+        self.assertEqual(len(self.sfs.open('/zeros/64K').read(k128)), k64)
+
         self.assertEqual(len(self.sfs.open('/zeros/5B').read(5)), 5)
         self.assertEqual(len(self.sfs.open('/ones/5B').read(5)), 5)
         self.assertEqual(len(self.sfs.open('/alpha_num/5B').read(5)), 5)
+
+
+class SizeFSFuseTestCase(unittest2.TestCase):
+
+    def setUp(self):
+        self.sfs = SizefsFuse()
+
+    def test_sfs_fuse(self):
+        test_contents = 'tests'
+        self.sfs.mkdir('/regex1', None)
+
+        self.sfs.setxattr('/regex1', 'generator', 'regex', None)
+        self.sfs.setxattr('/regex1', 'filler', test_contents, None)
+
+        # Test multiple reads
+        self.assertEqual(test_contents,
+                         self.sfs.read('/regex1/5B', 5, 0, None))
+        self.assertEqual(test_contents,
+                         self.sfs.read('/regex1/5B', 5, 0, None))
+
+        # Test simple regex
+        self.sfs.setxattr('/regex1/5B', 'filler', 'a{2}b{2}c', None)
+        self.assertEqual('aabbc', self.sfs.read('/regex1/5B', 5, 0, None))
 
 
 if __name__ == '__main__':
