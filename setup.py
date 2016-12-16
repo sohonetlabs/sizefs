@@ -16,8 +16,8 @@ setuptools.setup(
     long_description=open('README.txt').read(),
     keywords=['testing', 'files', 'size'],
     install_requires=[
-        "fusepy>=2.0.2",
-        "docopt>=0.6.1",
-        "fs>=0.5.0"
+        "fusepy==2.0.4",
+        "docopt==0.6.2",
+        "fs==0.5.4"
     ],
 )
