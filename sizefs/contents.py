@@ -499,7 +499,7 @@ class XegerExpression(object):
                     self._generator.generate(generated_content,
                                              generated_content_length)
                 new_item_count += new_items
-        elif self._multiplier:
+        else:
             mult = self._multiplier.value()
             for x in range(mult):
                 new_items, generated_content_length = \

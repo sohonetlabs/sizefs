@@ -5,7 +5,7 @@ machine:
 test:
   override:
     - tox
-    - coverage report --fail-under=100
+    - coverage report --fail-under=90
 
 dependencies:
 
