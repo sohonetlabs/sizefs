@@ -6,7 +6,6 @@ from sizefs.contents import (
     SizeFSAlphaNumGen, SizeFSOneGen, SizeFSZeroGen
 )
 from sizefs.sizefs import SizeFS, SizeFile, DirEntry, doc_test
-from sizefs.sizefsFuse import SizefsFuse
 
 
 __author__ = "Mark McArdle, Joel Wright"
@@ -15,11 +14,6 @@ __author__ = "Mark McArdle, Joel Wright"
 @pytest.fixture
 def sfs():
     return SizeFS()
-
-
-@pytest.fixture
-def sfs_fuse():
-    return SizefsFuse()
 
 
 def test_doc_test():
@@ -177,23 +171,6 @@ def test_dir_entry():
     assert file_entry.desc_contents() == '<file 1B>'
     assert file_entry.__str__() == file_entry.name
     assert file_entry.isfile()
-
-
-def test_sfs_fuse(sfs_fuse):
-    test_contents = 'tests'
-
-    sfs_fuse.mkdir('/regex1', None)
-
-    sfs_fuse.setxattr('/regex1', 'generator', 'regex', None)
-    sfs_fuse.setxattr('/regex1', 'filler', test_contents, None)
-
-    # Test multiple reads
-    assert test_contents == sfs_fuse.read('/regex1/5B', 5, 0, None)
-    assert test_contents == sfs_fuse.read('/regex1/5B', 5, 0, None)
-
-    # Test simple regex
-    sfs_fuse.setxattr('/regex1/5B', 'filler', 'a{2}b{2}c', None)
-    assert 'aabbc' == sfs_fuse.read('/regex1/5B', 5, 0, None)
 
 
 def test_basic(sfs):

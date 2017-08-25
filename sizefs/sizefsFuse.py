@@ -7,7 +7,7 @@ import os
 
 from collections import defaultdict
 from errno import ENOENT, EPERM, ENODATA, ENOTEMPTY
-from fuse import FuseOSError, Operations, LoggingMixIn
+from fuse import FuseOSError, Operations, LoggingMixIn, FUSE
 from stat import S_IFDIR, S_IFREG
 from time import time
 
@@ -193,8 +193,9 @@ class SizefsFuse(Operations):
         Return a list of all extended attribute names for a file/folder
         """
         path_xattrs = self.xattrs.get(path, {})
-        xattr_names = map(lambda xa: xa if xa.startswith(u'user.') else xa[5:],
-                          path_xattrs)
+        xattr_names = map(
+            lambda xa: xa if xa.startswith(u'user.') else xa[5:], path_xattrs
+        )
         return xattr_names
 
     def mkdir(self, path, mode):
@@ -234,9 +235,10 @@ class SizefsFuse(Operations):
             if offset > (size_bytes - 1):
                 return ""
             else:
-                end_of_content = min(offset+size-1, size_bytes-1)
-                content = self.files[path]['generator'].read(offset,
-                                                             end_of_content)
+                end_of_content = min(offset+size, size_bytes)
+                content = self.files[path]['generator'].read(
+                    offset, end_of_content
+                )
                 return content
         else:
             self.create(path, 0o0444)
@@ -309,11 +311,8 @@ class SizefsFuse(Operations):
                 if old == folder:
                     new_path = os.path.join(new, filename)
                     self.files[new_path] = self.files.pop(file)
-
-        if old in self.files:
-            raise FuseOSError(EPERM)
-
-        raise FuseOSError(ENOENT)
+        else:
+            raise FuseOSError(ENOENT)
 
     def rmdir(self, path):
         if path in self.folders:
@@ -455,7 +454,6 @@ class SizefsFuse(Operations):
 
     @classmethod
     def mount(cls, mount_point, debug=False):
-        from fuse import FUSE
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
             logging.log(logging.DEBUG, "Starting Debug Logging")

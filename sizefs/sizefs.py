@@ -57,7 +57,6 @@ Options:
 """
 import datetime
 import os
-import six
 import stat
 
 from docopt import docopt
@@ -68,7 +67,7 @@ from fs.errors import ResourceNotFoundError, ResourceInvalidError
 from .contents import (
     SizeFSZeroGen, SizeFSOneGen, SizeFSAlphaNumGen, ONE_K, FILE_REGEX
 )
-
+from .sizefsFuse import SizefsFuse
 
 __author__ = "Mark McArdle, Joel Wright"
 
@@ -342,9 +341,6 @@ class SizeFS(FS):  # pylint: disable=R0902,R0904,R0921
         if dir_entry.isfile():
             raise ResourceInvalidError(path, msg="not a directory: %(path)s")
         paths = dir_entry.contents.keys()
-        for (i, _path) in enumerate(paths):
-            if not isinstance(_path, six.string_types):
-                paths[i] = str(_path)
         p_dirs = self._listdir_helper(path, paths, wildcard, full,
                                       absolute, dirs_only, files_only)
         return p_dirs

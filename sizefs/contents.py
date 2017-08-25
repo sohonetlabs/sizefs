@@ -9,12 +9,15 @@ __author__ = "Joel Wright, Mark McArdle"
 import re
 import random
 import logging
+
 from string import ascii_uppercase, ascii_lowercase, digits
 
-DEBUG = False
+ONE_K = 1000
 
-if DEBUG:
-    logging.setLevel(logging.DEBUG)
+FILE_REGEX = re.compile(
+    "^(?P<size>[0-9]+(\.[0-9])?)(?P<size_si>[EPTGMKB])((?P<operator>[\+|\-])"
+    "(?P<shift>\d+)""(?P<shift_si>[EPTGMKB]))?$"
+)
 
 
 class SizeFSGeneratorType(object):
@@ -22,13 +25,6 @@ class SizeFSGeneratorType(object):
     ONES = 'ones'
     ALPHA_NUM = 'alpha_num'
     REGEX = 'regex'
-
-
-ONE_K = 1000
-
-FILE_REGEX = re.compile("^(?P<size>[0-9]+(\.[0-9])?)(?P<size_si>[EPTGMKB])"
-                        "((?P<operator>[\+|\-])(?P<shift>\d+)"
-                        "(?P<shift_si>[EPTGMKB]))?$")
 
 
 class SizeFSGen(object):
@@ -503,7 +499,7 @@ class XegerExpression(object):
                     self._generator.generate(generated_content,
                                              generated_content_length)
                 new_item_count += new_items
-        else:
+        elif self._multiplier:
             mult = self._multiplier.value()
             for x in range(mult):
                 new_items, generated_content_length = \
@@ -594,8 +590,7 @@ class XegerSet(object):
     on each call to generate
     """
     def __init__(self, regex):
-        if DEBUG:
-            logging.debug("Parsing Set from regex: %s" % "".join(regex))
+        logging.debug("Parsing Set from regex: %s" % "".join(regex))
         self._parse_set(regex)
 
     def _parse_set(self, regex):
