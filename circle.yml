@@ -9,5 +9,5 @@ test:
 
 dependencies:
 
-  pre:
+  override:
     - pip install tox coverage
