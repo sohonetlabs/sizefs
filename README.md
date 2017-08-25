@@ -2,7 +2,7 @@ SizeFS
 ======
 
 A mock Filesystem that exists in memory only and allows for the creation of
-files of a size specified by the filename. 
+files of a size specified by the filename.
 
 For example, reading a file named 128M+1B will return a file of 128 Megabytes
 plus 1 byte, reading a file named 128M-1B will return a file of 128 Megabytes
@@ -27,7 +27,7 @@ Examples of valid filenames:
     2G-1B    - A file 1 byte smaller than 2 gigabytes.
     100K+10K - A file 10 kilobytes larger than 100 kilobytes.
     10E      - A ten exabyte file (yes really!)
-    
+
 File contents are generated as they are read, so it is entirely possible to 'create'
 files that are larger than any available RAM or HD storage. This can be very useful
 for testing large external storage systems, and the +/- operations are useful for
@@ -132,7 +132,7 @@ We can set up to 5 properties to control the regular expression patterns:
     suffix     - defined pattern for the end of a file (default = "")
     filler     - repeating pattern to fill file content (default = 0)
     padder     - single character to fill between content and footer (default = 0)
-    max_random - the largest number a + or * will resolve to 
+    max_random - the largest number a + or * will resolve to
 
 Where 'prefix', 'suffix', 'filler', and 'padder' conform to the following
 grammar:
@@ -181,11 +181,17 @@ pattern.
 Testing
 ------------------------
 
-Requires nose
+Single test run requires pytest
 
 From the command line:
 
-    nosetests
+    pytest
+
+Full test run requires tox
+
+From the command line:
+
+    tox
 
 Mounting as a filesystem
 ------------------------
@@ -195,11 +201,8 @@ Mac Mounting - http://osxfuse.github.com/
     Usage:
       sizefs.py [--debug] <mount_pount>
       sizefs.py --version
- 
+
       Options:
         --debug           Debug
         -h --help         Show this screen.
         --version         Show version.
-
-
-

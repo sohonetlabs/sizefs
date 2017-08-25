@@ -2,17 +2,20 @@
 """
 SizeFS content generators
 """
+import logging
+import os
 
 from collections import defaultdict
 from errno import ENOENT, EPERM, ENODATA, ENOTEMPTY
+from fuse import FuseOSError, Operations, LoggingMixIn
 from stat import S_IFDIR, S_IFREG
 from time import time
-import logging
-import os
-from contents import (XegerGen, SizeFSZeroGen, SizeFSOneGen, FILE_REGEX,
-                      SizeFSAlphaNumGen, SizeFSGeneratorType, ONE_K)
 
-from fuse import FuseOSError, Operations, LoggingMixIn
+from .contents import (
+    XegerGen, SizeFSZeroGen, SizeFSOneGen, FILE_REGEX, SizeFSAlphaNumGen,
+    SizeFSGeneratorType, ONE_K
+)
+
 
 __author__ = "Mark McArdle, Joel Wright"
 
@@ -40,20 +43,20 @@ class SizefsFuse(Operations):
         self.data = defaultdict(bytes)
         self.fd = 0
         now = time()
-        self.folders['/'] = dict(st_mode=(S_IFDIR | 0664), st_ctime=now,
+        self.folders['/'] = dict(st_mode=(S_IFDIR | 0o0664), st_ctime=now,
                                  st_mtime=now, st_atime=now, st_nlink=0)
         self.xattrs['/'] = {}
 
         # Create the default dirs (zeros, ones, common)
-        self.mkdir('/zeros', (S_IFDIR | 0664))
+        self.mkdir('/zeros', (S_IFDIR | 0o0664))
         self.setxattr('/zeros', u'user.generator',
                       SizeFSGeneratorType.ZEROS, None)
         self._add_default_files('/zeros')
-        self.mkdir('/ones', (S_IFDIR | 0664))
+        self.mkdir('/ones', (S_IFDIR | 0o0664))
         self.setxattr('/ones', u'user.generator',
                       SizeFSGeneratorType.ONES, None)
         self._add_default_files('/ones')
-        self.mkdir('/alpha_num', (S_IFDIR | 0664))
+        self.mkdir('/alpha_num', (S_IFDIR | 0o0664))
         self.setxattr('/alpha_num', u'user.generator',
                       SizeFSGeneratorType.ALPHA_NUM, None)
         self._add_default_files('/alpha_num')
@@ -152,7 +155,7 @@ class SizefsFuse(Operations):
             raise FuseOSError(ENOENT)
         else:
             try:
-                self.create(path, 0444)
+                self.create(path, 0o0444)
                 return self.getattr(path)
             except FuseOSError as e:
                 if e.errno == EPERM:
@@ -166,7 +169,7 @@ class SizefsFuse(Operations):
 
         If the xattr does not exist we return ENODATA (synonymous with ENOATTR)
         """
-        if not '.' in name and not name.startswith(u'user.'):
+        if '.' not in name and not name.startswith(u'user.'):
             name = u'user.%s' % name
         else:
             name = u'%s' % name
@@ -204,7 +207,7 @@ class SizefsFuse(Operations):
         if not parent == "/":
             raise FuseOSError(EPERM)
 
-        self.folders[path] = dict(st_mode=(S_IFDIR | 0664), st_nlink=2,
+        self.folders[path] = dict(st_mode=(S_IFDIR | 0o0664), st_nlink=2,
                                   st_size=0, st_ctime=time(), st_mtime=time(),
                                   st_atime=time())
         self.xattrs[path] = {}
@@ -216,7 +219,7 @@ class SizefsFuse(Operations):
         We check that a file exists in the file dictionary and return a
         unique file descriptor if so
         """
-        if not path in self.files:
+        if path not in self.files:
             raise FuseOSError(ENOENT)
 
         self.fd += 1
@@ -236,7 +239,7 @@ class SizefsFuse(Operations):
                                                              end_of_content)
                 return content
         else:
-            self.create(path, 0444)
+            self.create(path, 0o0444)
             return self.read(path, size, offset, fh)
 
     def readdir(self, path, fh):
@@ -264,7 +267,7 @@ class SizefsFuse(Operations):
         return self.data[path]
 
     def removexattr(self, path, name):
-        if not '.' in name and not name.startswith(u'user.'):
+        if '.' not in name and not name.startswith(u'user.'):
             name = u'user.%s' % name
         else:
             name = u'%s' % name
@@ -328,7 +331,7 @@ class SizefsFuse(Operations):
     def setxattr(self, path, name, value, options, position=0):
         # Ignore options
 
-        if not '.' in name and not name.startswith(u'user.'):
+        if '.' not in name and not name.startswith(u'user.'):
             name = u'user.%s' % name
         else:
             name = u'%s' % name
@@ -400,7 +403,7 @@ class SizefsFuse(Operations):
 
     def _file_attrs(self, m):
         size = self._calculate_file_size(m)
-        return dict(st_mode=(S_IFREG | 0444), st_nlink=1,
+        return dict(st_mode=(S_IFREG | 0o0444), st_nlink=1,
                     st_size=size, st_ctime=time(),
                     st_mtime=time(), st_atime=time())
 
@@ -416,9 +419,7 @@ class SizefsFuse(Operations):
         """
         for default_file in self.default_files:
             new_filepath = os.path.join(path, default_file)
-            self.create(new_filepath, 0444)
-            #attr = self._file_attrs(FILE_REGEX.match(default_file))
-            #self.files.setdefault(new_filepath, {"attrs": attr})
+            self.create(new_filepath, 0o0444)
 
     def _create_generator(self, path, size_bytes):
         """
