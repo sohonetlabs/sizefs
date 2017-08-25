@@ -7,7 +7,6 @@ setuptools.setup(
     version='0.3.1',
     author='Sohonet',
     author_email='dev@sohonet.com',
-
     packages=['sizefs', 'tests'],
     scripts=[],
     url='http://pypi.python.org/pypi/SizeFS/',
