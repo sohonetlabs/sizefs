@@ -82,13 +82,14 @@ class SizeFSAlphaNumGen(SizeFSGen):
     """
     Generate Alpha Numeric Characters
     """
-
+    NUM_CHARS = 64 * 1024
     CHARS = ascii_uppercase + digits + ascii_lowercase
 
     def __init__(self):
         super(SizeFSAlphaNumGen, self).__init__()
         self.chars = ''.join(random.choice(
-            self.CHARS) for _ in range(64 * 1024))
+            self.CHARS) for _ in range(self.NUM_CHARS)
+        )
 
     def read(self, start, end):
         if start <= end:
