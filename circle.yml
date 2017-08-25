@@ -9,5 +9,10 @@ test:
 
 dependencies:
 
+  cache_directories:
+    - "~/sizefs/.tox/"
+
   override:
+    - mkdir -p ~/sizefs/.tox/
     - pip install tox coverage
+    - tox --notest  # So tox dependencies are cached
