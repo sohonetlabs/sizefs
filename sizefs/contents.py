@@ -6,14 +6,18 @@ Content Generation Code for SizeFS
 
 __author__ = "Joel Wright, Mark McArdle"
 
+import re
 import random
 import logging
-import string
 
-DEBUG = False
+from string import ascii_uppercase, ascii_lowercase, digits
 
-if DEBUG:
-    logging.setLevel(logging.DEBUG)
+ONE_K = 1000
+
+FILE_REGEX = re.compile(
+    "^(?P<size>[0-9]+(\.[0-9])?)(?P<size_si>[EPTGMKB])((?P<operator>[\+|\-])"
+    "(?P<shift>\d+)""(?P<shift_si>[EPTGMKB]))?$"
+)
 
 
 class SizeFSGeneratorType(object):
@@ -23,52 +27,72 @@ class SizeFSGeneratorType(object):
     REGEX = 'regex'
 
 
-class SizeFSZeroGen(object):
+class SizeFSGen(object):
     """
     Generate Zeros
     """
 
+    def __init__(self):
+        self.chars = 'X'
+
+    def fill(self, fill):
+        if len(self.chars) == 0:
+            return self.chars * fill
+        else:
+            pre_seed_count = 0
+            content = []
+            pre_seed_len = len(self.chars)
+            while fill > pre_seed_len:
+                content.append(self.chars)
+                fill -= pre_seed_len
+                pre_seed_count += 1
+            content.append(self.chars[0:fill])
+            return ''.join(content)
+
     def read(self, start, end):
         if start <= end:
-            return ''.zfill(end-start+1)
+            return self.chars * (end-start)
         else:
             return ''
 
 
-class SizeFSOneGen(object):
+class SizeFSZeroGen(SizeFSGen):
+    """
+    Generate Zeros
+    """
+    CHARS = '0'
+
+    def __init__(self):
+        super(SizeFSZeroGen, self).__init__()
+        self.chars = self.CHARS
+
+
+class SizeFSOneGen(SizeFSGen):
     """
     Generate Ones
     """
+    CHARS = '1'
 
-    def read(self, start, end):
-        if start <= end:
-            return '1' * (end-start+1)
-        else:
-            return ''
+    def __init__(self):
+        super(SizeFSOneGen, self).__init__()
+        self.chars = self.CHARS
 
 
-class SizeFSAlphaNumGen(object):
+class SizeFSAlphaNumGen(SizeFSGen):
     """
     Generate Alpha Numeric Characters
     """
-    chars = string.ascii_uppercase + string.digits + string.ascii_lowercase
+
+    CHARS = ascii_uppercase + digits + ascii_lowercase
 
     def __init__(self):
-        self.pre_seed = ''.join(random.choice(self.chars)
-                                for _ in range(64*1024))
+        super(SizeFSAlphaNumGen, self).__init__()
+        self.chars = ''.join(random.choice(
+            self.CHARS) for _ in range(64 * 1024))
 
     def read(self, start, end):
         if start <= end:
-            toRead = end - start
-            pre_seed_count = 0
-            content = []
-            pre_seed_len = len(self.pre_seed)
-            while toRead > pre_seed_len:
-                content.append(self.pre_seed)
-                toRead -= pre_seed_len
-                pre_seed_count += 1
-            content.append(self.pre_seed[0:toRead+1])
-            return ''.join(content)
+            return self.fill(end - start)
         else:
             return ''
 
@@ -234,7 +258,6 @@ class XegerGen(object):
         end range within a specified prefix or suffix pattern will produce
         appropriate output (this is necessary for metadata testing functions).
         """
-        #return "".zfill(end-start)
         content = []
         content_length = 0
 
@@ -270,8 +293,9 @@ class XegerGen(object):
             # If we're sufficiently close to the end size of the contents
             # requested, then we need to consider padding and suffix
             last_required = True
-            last = self._suffix[:self._suffix_length +
-                                   (end - (self._size - 1))]
+            last = self._suffix[
+                :self._suffix_length + (end - (self._size - 1))
+            ]
             still_required = chunk_size - len(last)
         else:
             still_required = chunk_size
@@ -285,7 +309,7 @@ class XegerGen(object):
         if content_length > still_required:
             overrun = content_length - still_required
             overrun_content = []
-            for x in xrange(new_items):
+            for x in range(new_items):
                 overrun_content.insert(0, content.pop())
             overrun_content_string = "".join(overrun_content)
             overrun_length = len(overrun_content_string)
@@ -381,11 +405,11 @@ class XegerExpression(object):
 
         while regex:
             c = regex.pop(0)
-            if c == '(':  # We've reached what appears to be a nested expression
+            # We've reached what appears to be a nested expression
+            if c == '(':
                 if not accum:  # We've not accumulated any content to return
                     accum = self._get_nested_pattern_input(regex)
-                    self._generator = XegerPattern(accum,
-                                                      self._max_random)
+                    self._generator = XegerPattern(accum, self._max_random)
                     self._multiplier = XegerMultiplier(regex)
                     self._is_constant_multiplier()
                     return
@@ -401,7 +425,8 @@ class XegerExpression(object):
                     self._multiplier = XegerMultiplier(regex)
                     self._is_constant_multiplier()
                     return
-                else:  # There's already stuff in the accumulator, must be chars
+                else:
+                    # There's already stuff in the accumulator, must be chars
                     regex.insert(0, c)
                     self._generator = XegerSequence(accum)
                     self._constant_multiplier = None
@@ -469,14 +494,14 @@ class XegerExpression(object):
         new_item_count = 0
         if self._constant_multiplier:
             mult = self._multiplier
-            for x in xrange(mult):
+            for x in range(mult):
                 new_items, generated_content_length = \
                     self._generator.generate(generated_content,
                                              generated_content_length)
                 new_item_count += new_items
-        else:
+        elif self._multiplier:
             mult = self._multiplier.value()
-            for x in xrange(mult):
+            for x in range(mult):
                 new_items, generated_content_length = \
                     self._generator.generate(generated_content,
                                              generated_content_length)
@@ -565,8 +590,7 @@ class XegerSet(object):
     on each call to generate
     """
     def __init__(self, regex):
-        if DEBUG:
-            logging.debug("Parsing Set from regex: %s" % "".join(regex))
+        logging.debug("Parsing Set from regex: %s" % "".join(regex))
         self._parse_set(regex)
 
     def _parse_set(self, regex):
@@ -613,5 +637,3 @@ class XegerSet(object):
     def generate(self, generated_content, generated_content_length):
         generated_content.append(self._set[self._random.rand()])
         return 1, generated_content_length + 1
-
-
