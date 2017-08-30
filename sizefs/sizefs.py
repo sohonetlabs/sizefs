@@ -116,19 +116,31 @@ def __get_size__(filename):
         raise ValueError
 
 
+def bytes_or_str(is_bytes, content):
+    if is_bytes:
+        return content.encode('utf-8')
+    else:
+        return content
+
+
 class SizeFile(object):
     """
     A mock file object that returns a specified number of bytes
     """
 
-    def __init__(self, path, size, filler=None):
+    def __init__(self, path, size, mode='r', filler=None):
         self.closed = False
         self.length = size
         self.pos = 0
+        self.mode = mode
         self.filler = filler
         if not filler:
             self.filler = SizeFSZeroGen()
         self.path = path
+
+    @property
+    def is_bytes(self):
+        return 'b' in self.mode
 
     def close(self):
         """ close the file to prevent further reading """
@@ -137,20 +149,20 @@ class SizeFile(object):
     def read(self, size=None):
         """ read size from the file, or if size is None read to end """
         if self.pos >= self.length or self.closed:
-            return ''
+            return bytes_or_str(self.is_bytes, '')
+
         if size is None:
             toread = self.tell()
             self.pos += toread
-            return self.filler.fill(toread)
         else:
             if size + self.pos >= self.length:
                 toread = self.length - self.pos
                 self.pos = self.length
-                return self.filler.fill(toread)
             else:
                 toread = size
                 self.pos = self.pos + size
-                return self.filler.fill(toread)
+
+        return bytes_or_str(self.is_bytes, self.filler.fill(toread))
 
     def seek(self, offset):
         """ seek the position by a distance of 'offset' bytes
@@ -388,13 +400,17 @@ class SizeFS(FS):  # pylint: disable=R0902,R0904,R0921
                     raise ResourceInvalidError(path)
                 file_dir_entry.accessed_time = datetime.datetime.now()
                 file_dir_entry.mem_file.reset()
+                file_dir_entry.mem_file.mode = mode
                 return file_dir_entry.mem_file
             else:
                 size = __get_size__(file_name)
-                mem_file = SizeFile(path, size, filler=parent_dir_entry.filler)
+                mem_file = SizeFile(
+                    path, size, mode=mode, filler=parent_dir_entry.filler
+                )
                 mem_file.reset()
-                new_entry = DirEntry(DirEntry.FILE_ENTRY, path,
-                                     mem_file=mem_file)
+                new_entry = DirEntry(
+                    DirEntry.FILE_ENTRY, path, mem_file=mem_file
+                )
 
                 parent_dir_entry.contents[file_name] = new_entry
                 return mem_file

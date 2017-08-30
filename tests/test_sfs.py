@@ -27,6 +27,29 @@ def test_large_files(sfs):
     assert len(sfs.open('/1T').read(1)) == 1
 
 
+def test_multiple_reads(sfs):
+    sf = sfs.open('/10B')
+    assert sf.read(4) == '0000'
+    assert sf.read(4) == '0000'
+    assert sf.read(4) == '00'
+    assert sf.read(4) == ''
+
+
+def test_binary_files(sfs):
+    assert sfs.open('/1B', mode='rb').read(1) == b'0'
+    assert sfs.open('/1M', mode='rb').read(1) == b'0'
+    assert sfs.open('/1G', mode='rb').read(1) == b'0'
+    assert sfs.open('/1T', mode='rb').read(1) == b'0'
+
+
+def test_multiple_binary_reads(sfs):
+    sf = sfs.open('/10B', 'rb')
+    assert sf.read(4) == b'0000'
+    assert sf.read(4) == b'0000'
+    assert sf.read(4) == b'00'
+    assert sf.read(4) == b''
+
+
 def test_bad_files(sfs):
     sfs = SizeFS()
     with pytest.raises(ValueError):
