@@ -55,19 +55,19 @@ Options:
   -h --help         Show this screen.
   --version         Show version.
 """
-
-import logging
 import datetime
 import os
 import stat
+
 from docopt import docopt
 from fs.path import iteratepath, pathsplit, normpath
 from fs.base import FS, synchronize
 from fs.errors import ResourceNotFoundError, ResourceInvalidError
-from contents import (SizeFSOneGen, SizeFSZeroGen, SizeFSAlphaNumGen, ONE_K,
-                      FILE_REGEX)
-from sizefsFuse import SizeFSLogging, SizefsFuse
 
+from .contents import (
+    SizeFSZeroGen, SizeFSOneGen, SizeFSAlphaNumGen, ONE_K, FILE_REGEX
+)
+from .sizefsFuse import SizefsFuse
 
 __author__ = "Mark McArdle, Joel Wright"
 
@@ -116,19 +116,31 @@ def __get_size__(filename):
         raise ValueError
 
 
+def bytes_or_str(is_bytes, content):
+    if is_bytes:
+        return content.encode('utf-8')
+    else:
+        return content
+
+
 class SizeFile(object):
     """
     A mock file object that returns a specified number of bytes
     """
 
-    def __init__(self, path, size, filler=None):
+    def __init__(self, path, size, mode='r', filler=None):
         self.closed = False
         self.length = size
         self.pos = 0
+        self.mode = mode
         self.filler = filler
         if not filler:
             self.filler = SizeFSZeroGen()
         self.path = path
+
+    @property
+    def is_bytes(self):
+        return 'b' in self.mode
 
     def close(self):
         """ close the file to prevent further reading """
@@ -137,20 +149,20 @@ class SizeFile(object):
     def read(self, size=None):
         """ read size from the file, or if size is None read to end """
         if self.pos >= self.length or self.closed:
-            return ''
+            return bytes_or_str(self.is_bytes, '')
+
         if size is None:
             toread = self.tell()
             self.pos += toread
-            return self.filler.fill(toread)
         else:
             if size + self.pos >= self.length:
                 toread = self.length - self.pos
                 self.pos = self.length
-                return self.filler.fill(toread)
             else:
                 toread = size
                 self.pos = self.pos + size
-                return self.filler.fill(toread)
+
+        return bytes_or_str(self.is_bytes, self.filler.fill(toread))
 
     def seek(self, offset):
         """ seek the position by a distance of 'offset' bytes
@@ -213,7 +225,7 @@ class DirEntry(object):  # pylint: disable=R0902
         elif self.isdir():
             return "<%s %s>" % (self.type, "".join(
                 "%s: %s" % (k, v.desc_contents())
-                for k, v in self.contents.iteritems()))
+                for k, v in self.contents.items()))
 
     def isdir(self):
         """ is this DirEntry a directory """
@@ -235,7 +247,6 @@ class SizeFS(FS):  # pylint: disable=R0902,R0904,R0921
     def __init__(self, *args, **kwargs):
         self.verbose = kwargs.pop("verbose", False)
         super(SizeFS, self).__init__(*args, **kwargs)
-        #thread_synchronize=_thread_synchronize_default)
         self.sizes = [1, 10, 100]
         self.si_units = ['K', 'M', 'G', 'B']
         files = ["%s%s" % (size, si)
@@ -342,9 +353,6 @@ class SizeFS(FS):  # pylint: disable=R0902,R0904,R0921
         if dir_entry.isfile():
             raise ResourceInvalidError(path, msg="not a directory: %(path)s")
         paths = dir_entry.contents.keys()
-        for (i, _path) in enumerate(paths):
-            if not isinstance(_path, unicode):
-                paths[i] = unicode(_path)
         p_dirs = self._listdir_helper(path, paths, wildcard, full,
                                       absolute, dirs_only, files_only)
         return p_dirs
@@ -365,10 +373,10 @@ class SizeFS(FS):  # pylint: disable=R0902,R0904,R0921
         if dir_entry.isdir():
             info['size'] = 4096
             info['st_nlink'] = 0
-            info['st_mode'] = 0755 | stat.S_IFDIR
+            info['st_mode'] = 0o0755 | stat.S_IFDIR
         else:
             info['size'] = dir_entry.mem_file.length
-            info['st_mode'] = 0666 | stat.S_IFREG
+            info['st_mode'] = 0o0666 | stat.S_IFREG
 
         return info
 
@@ -392,13 +400,17 @@ class SizeFS(FS):  # pylint: disable=R0902,R0904,R0921
                     raise ResourceInvalidError(path)
                 file_dir_entry.accessed_time = datetime.datetime.now()
                 file_dir_entry.mem_file.reset()
+                file_dir_entry.mem_file.mode = mode
                 return file_dir_entry.mem_file
             else:
                 size = __get_size__(file_name)
-                mem_file = SizeFile(path, size, filler=parent_dir_entry.filler)
+                mem_file = SizeFile(
+                    path, size, mode=mode, filler=parent_dir_entry.filler
+                )
                 mem_file.reset()
-                new_entry = DirEntry(DirEntry.FILE_ENTRY, path,
-                                     mem_file=mem_file)
+                new_entry = DirEntry(
+                    DirEntry.FILE_ENTRY, path, mem_file=mem_file
+                )
 
                 parent_dir_entry.contents[file_name] = new_entry
                 return mem_file

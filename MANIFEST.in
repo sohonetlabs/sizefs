@@ -1,0 +1,9 @@
+include README.md
+
+include sizefs/contents.c
+include sizefs/contents.pyx
+
+recursive-include tests *
+recursive-include sizefs *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]

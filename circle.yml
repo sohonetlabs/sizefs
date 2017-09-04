@@ -1,0 +1,18 @@
+machine:
+  post:
+    - pyenv global 2.7.12 3.4.4 3.5.3 3.6.2
+
+test:
+  override:
+    - tox
+    - coverage report --fail-under=90
+
+dependencies:
+
+  cache_directories:
+    - "~/sizefs/.tox/"
+
+  override:
+    - mkdir -p ~/sizefs/.tox/
+    - pip install tox coverage
+    - tox --notest  # So tox dependencies are cached
