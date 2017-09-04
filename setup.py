@@ -4,7 +4,7 @@ __author__ = 'sohonet'
 
 setuptools.setup(
     name='SizeFS',
-    version='0.3.1',
+    version='0.4.0',
     author='Sohonet',
     author_email='dev@sohonet.com',
     packages=['sizefs', 'tests'],
