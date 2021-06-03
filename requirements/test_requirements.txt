@@ -1,4 +1,4 @@
 mock
 pytest
-pytest-cov
+pytest-cov==2.12.1
 flake8
