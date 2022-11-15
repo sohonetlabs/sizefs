@@ -1,3 +1,4 @@
 fusepy>=2.0.4
 docopt==0.6.2
 fs==0.5.4
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
