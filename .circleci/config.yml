@@ -32,9 +32,11 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y libfuse-dev
       - run:
-          command: |
-            poetry run pytest
-          name: Run pytest
+          command: poetry run pytest --cov=sizefs
+      - run:
+          command: poetry run tox
+      - run:
+          command: poetry run build
   linting:
     executor: python
     steps:
