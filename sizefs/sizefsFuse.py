@@ -301,6 +301,7 @@ class SizefsFuse(Operations):
         the folder. We raise a permissions error for files, because renaming
         a file changes the meaning of its content generator.
         """
+        renamed = {}
         if old in self.folders:
             if new in self.folders:
                 raise FuseOSError(EPERM)
@@ -310,7 +311,9 @@ class SizefsFuse(Operations):
                 (folder, filename) = os.path.split(file)
                 if old == folder:
                     new_path = os.path.join(new, filename)
-                    self.files[new_path] = self.files.pop(file)
+                    renamed[new_path] = self.files[file]
+
+            self.files = {**self.files, **renamed}
         else:
             raise FuseOSError(ENOENT)
 

@@ -1,6 +1,6 @@
 import pytest
 
-from fs.errors import ResourceInvalidError, ResourceNotFoundError
+from fs.errors import ResourceInvalid, ResourceNotFound
 
 from sizefs.contents import (
     SizeFSAlphaNumGen, SizeFSOneGen, SizeFSZeroGen
@@ -116,15 +116,15 @@ def test_files(sfs):
         assert key in info_keys
     assert len(sfs.listdir('/ones')) == 12
 
-    with pytest.raises(ResourceInvalidError):
+    with pytest.raises(ResourceInvalid):
         sfs.getinfo('/no_dir')
-    with pytest.raises(ResourceNotFoundError):
+    with pytest.raises(ResourceNotFound):
         sfs.listdir('/no_dir')
-    with pytest.raises(ResourceInvalidError):
+    with pytest.raises(ResourceInvalid):
         sfs.listdir('/20B')
-    with pytest.raises(ResourceInvalidError):
+    with pytest.raises(ResourceInvalid):
         sfs.open('/ones')
-    with pytest.raises(ResourceNotFoundError):
+    with pytest.raises(ResourceNotFound):
         sfs.open('/sub/sub')
 
 
