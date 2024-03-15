@@ -11,7 +11,7 @@ executors:
     working_directory: ~/sohonet_hub
 
 jobs:
-  build:
+  setup:
     executor: python
     steps:
       - checkout
@@ -51,6 +51,6 @@ jobs:
 workflows:
   main:
     jobs:
-      - build
-      - tests: {requires: [build]}
-      - linting: {requires: [build]}
+      - setup
+      - tests: {requires: [setup]}
+      - linting: {requires: [setup]}
