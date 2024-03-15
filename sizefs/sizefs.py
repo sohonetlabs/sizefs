@@ -55,23 +55,23 @@ Options:
   -h --help         Show this screen.
   --version         Show version.
 """
-from contextlib import contextmanager
 import datetime
+import fnmatch
 import os
 import re
 import stat
-import fnmatch
+from contextlib import contextmanager
+from os.path import abspath
+from os.path import join as pathcombine
 from typing import Any, BinaryIO, Text
 
-from os.path import abspath, join as pathcombine
-
 from docopt import docopt
+from fs.base import FS
+from fs.errors import ResourceInvalid, ResourceNotFound
 from fs.info import Info
 from fs.path import iteratepath, normpath, split
-from fs.base import FS
-from fs.errors import ResourceNotFound, ResourceInvalid
 
-from .contents import SizeFSZeroGen, SizeFSOneGen, SizeFSAlphaNumGen, ONE_K, FILE_REGEX
+from .contents import FILE_REGEX, ONE_K, SizeFSAlphaNumGen, SizeFSOneGen, SizeFSZeroGen
 from .sizefsFuse import SizefsFuse
 
 __author__ = "Mark McArdle, Joel Wright"
@@ -480,6 +480,7 @@ def doc_test():
     Run doctests
     """
     import doctest
+
     doctest.testmod()
 
 
