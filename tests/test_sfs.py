@@ -1,10 +1,8 @@
 import pytest
-
 from fs.errors import ResourceInvalid, ResourceNotFound
 
 from sizefs.contents import SizeFSAlphaNumGen, SizeFSOneGen, SizeFSZeroGen
-from sizefs.sizefs import SizeFS, SizeFile, DirEntry, doc_test
-
+from sizefs.sizefs import DirEntry, SizeFile, SizeFS, doc_test
 
 __author__ = "Mark McArdle, Joel Wright"
 

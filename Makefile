@@ -21,7 +21,12 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr htmlcov/
 
 lint: ## check style with flake8
-	black sizefs tests sizefs/contents.py
+	poetry run black --check .
+	poetry run isort --check .
+
+lint_fix: ## check style with flake8
+	poetry run black .
+	poetry run isort .
 
 test: ## run tests quickly with the default Python
 	py.test

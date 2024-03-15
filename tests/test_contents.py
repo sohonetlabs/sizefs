@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-import pytest
 import re
 
+import pytest
+
 from sizefs.contents import (
-    XegerExpression,
-    XegerGen,
-    XegerError,
-    XegerMultiplier,
     SizeFSGen,
     SizeFSZeroGen,
+    XegerError,
+    XegerExpression,
+    XegerGen,
+    XegerMultiplier,
 )
 
 __author__ = "Joel Wright, Mark McArdle"

@@ -1,11 +1,10 @@
 import mock
 import pytest
-
 from fuse import FuseOSError
 
+import sizefs
 from sizefs.contents import SizeFSOneGen
 from sizefs.sizefsFuse import SizefsFuse
-import sizefs
 
 
 @pytest.fixture

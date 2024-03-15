@@ -5,10 +5,10 @@ SizeFS
 
 __all__ = ["SizeFS", "SizeFSZeroGen"]
 
+from .contents import FastRandom  # noqa
 from .contents import (
     FILE_REGEX,
     ONE_K,
-    FastRandom,  # noqa
     SizeFSAlphaNumGen,
     SizeFSGeneratorType,
     SizeFSOneGen,

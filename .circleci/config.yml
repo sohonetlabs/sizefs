@@ -11,6 +11,22 @@ executors:
     working_directory: ~/sohonet_hub
 
 jobs:
+  build:
+    executor: python
+    steps:
+      - checkout
+      - python/install-packages:
+          pkg-manager: poetry
+      - run:
+          command: |
+            poetry install
+            sudo apt-get update
+            sudo apt-get install -y libfuse-dev
+          name: Install dependencies
+      - run:
+          command: |
+            poetry run pytest
+          name: Run tests
   pytest:
     executor: python
     steps:
@@ -30,7 +46,7 @@ jobs:
       - run:
           command: |
             poetry run black .
-            poetry run isort --profile black .
+            poetry run isort .
           name: Run linting
 workflows:
   main:
