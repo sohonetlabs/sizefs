@@ -8,7 +8,6 @@ executors:
   python:
     docker:
       - image: cimg/python:3.10
-    working_directory: ~/sohonet_hub
 
 jobs:
   setup:
