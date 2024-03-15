@@ -60,10 +60,9 @@ import fnmatch
 import os
 import re
 import stat
-from contextlib import contextmanager
 from os.path import abspath
 from os.path import join as pathcombine
-from typing import Any, BinaryIO, Text
+from typing import Any, BinaryIO
 
 from docopt import docopt
 from fs.base import FS
@@ -128,7 +127,7 @@ def bytes_or_str(is_bytes, content):
         return content
 
 
-class SizeFile(object):
+class SizeFile:
     """
     A mock file object that returns a specified number of bytes
     """
@@ -190,7 +189,7 @@ class SizeFile(object):
         self.pos = 0
 
 
-class DirEntry(object):  # pylint: disable=R0902
+class DirEntry:  # pylint: disable=R0902
     """
     A directory entry. Can be a file or folder.
     """
@@ -224,12 +223,13 @@ class DirEntry(object):  # pylint: disable=R0902
     def desc_contents(self):
         """describes the contents of this DirEntry"""
         if self.isfile():
-            return "<%s %s>" % (self.type, self.name)
+            return "<{} {}>".format(self.type, self.name)
         elif self.isdir():
-            return "<%s %s>" % (
+            return "<{} {}>".format(
                 self.type,
                 "".join(
-                    "%s: %s" % (k, v.desc_contents()) for k, v in self.contents.items()
+                    "{}: {}".format(k, v.desc_contents())
+                    for k, v in self.contents.items()
                 ),
             )
 
@@ -252,28 +252,36 @@ class SizeFS(FS):  # pylint: disable=R0902,R0904,R0921
 
     def __init__(self, *args, **kwargs):
         self.verbose = kwargs.pop("verbose", False)
-        super(SizeFS, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.sizes = [1, 10, 100]
         self.si_units = ["K", "M", "G", "B"]
-        files = ["%s%s" % (size, si) for size in self.sizes for si in self.si_units]
+        files = ["{}{}".format(size, si) for size in self.sizes for si in self.si_units]
         self.root = DirEntry(DirEntry.DIR_ENTRY, "root")
 
         self.zeros = DirEntry(DirEntry.DIR_ENTRY, "zeros", filler=SizeFSZeroGen())
         self.ones = DirEntry(DirEntry.DIR_ENTRY, "ones", filler=SizeFSOneGen())
         self.alpha_num = DirEntry(
-            DirEntry.DIR_ENTRY, "alpha_num", filler=SizeFSAlphaNumGen()
+            DirEntry.DIR_ENTRY,
+            "alpha_num",
+            filler=SizeFSAlphaNumGen(),
         )
         self.common = DirEntry(DirEntry.DIR_ENTRY, "common", filler=SizeFSZeroGen())
 
         for filename in files:
             self.zeros.contents[filename] = DirEntry(
-                DirEntry.FILE_ENTRY, filename, filler=SizeFSZeroGen()
+                DirEntry.FILE_ENTRY,
+                filename,
+                filler=SizeFSZeroGen(),
             )
             self.ones.contents[filename] = DirEntry(
-                DirEntry.FILE_ENTRY, filename, filler=SizeFSOneGen()
+                DirEntry.FILE_ENTRY,
+                filename,
+                filler=SizeFSOneGen(),
             )
             self.alpha_num.contents[filename] = DirEntry(
-                DirEntry.FILE_ENTRY, filename, filler=SizeFSAlphaNumGen()
+                DirEntry.FILE_ENTRY,
+                filename,
+                filler=SizeFSAlphaNumGen(),
             )
 
         # Create a list of common file size limits
@@ -288,10 +296,14 @@ class SizeFS(FS):  # pylint: disable=R0902,R0904,R0921
             plus_one = "%s+1B" % filename
             minus_one = "%s-1B" % filename
             self.common.contents[plus_one] = DirEntry(
-                DirEntry.FILE_ENTRY, plus_one, filler=SizeFSAlphaNumGen()
+                DirEntry.FILE_ENTRY,
+                plus_one,
+                filler=SizeFSAlphaNumGen(),
             )
             self.common.contents[minus_one] = DirEntry(
-                DirEntry.FILE_ENTRY, minus_one, filler=SizeFSAlphaNumGen()
+                DirEntry.FILE_ENTRY,
+                minus_one,
+                filler=SizeFSAlphaNumGen(),
             )
 
         self.root.contents["zeros"] = self.zeros
@@ -345,7 +357,7 @@ class SizeFS(FS):  # pylint: disable=R0902,R0904,R0921
     def rename(self, src, dst):
         raise NotImplementedError
 
-    def setinfo(self, path: Text, info: Info) -> None:
+    def setinfo(self, path: str, info: Info) -> None:
         raise NotImplementedError
 
     def _listdir_helper(
@@ -373,7 +385,7 @@ class SizeFS(FS):  # pylint: disable=R0902,R0904,R0921
         if wildcard is not None:
             if not callable(wildcard):
                 wildcard_re = re.compile(fnmatch.translate(wildcard))
-                wildcard = lambda fn: bool(wildcard_re.match(fn))
+                wildcard = wildcard_re.match
             entries = [p for p in entries if wildcard(p)]
 
         if dirs_only:
@@ -408,7 +420,13 @@ class SizeFS(FS):  # pylint: disable=R0902,R0904,R0921
                 raise ResourceInvalid(path, msg="not a directory: %(path)s")
             paths = dir_entry.contents.keys()
             p_dirs = self._listdir_helper(
-                path, paths, wildcard, full, absolute, dirs_only, files_only
+                path,
+                paths,
+                wildcard,
+                full,
+                absolute,
+                dirs_only,
+                files_only,
             )
             return p_dirs
 
@@ -458,7 +476,10 @@ class SizeFS(FS):  # pylint: disable=R0902,R0904,R0921
                 else:
                     size = __get_size__(file_name)
                     mem_file = SizeFile(
-                        path, size, mode=mode, filler=parent_dir_entry.filler
+                        path,
+                        size,
+                        mode=mode,
+                        filler=parent_dir_entry.filler,
                     )
                     mem_file.reset()
                     new_entry = DirEntry(DirEntry.FILE_ENTRY, path, mem_file=mem_file)
@@ -470,7 +491,7 @@ class SizeFS(FS):  # pylint: disable=R0902,R0904,R0921
                 raise NotImplementedError
 
     def openbin(
-        self, path: Text, mode: Text = "r", buffering: int = -1, **options: Any
+        self, path: str, mode: str = "r", buffering: int = -1, **options: Any
     ) -> BinaryIO:
         return super().open(path, mode, buffering, **options)
 
@@ -491,4 +512,4 @@ if __name__ == "__main__":
     if os.path.exists(MOUNT_POINT):
         SizefsFuse.mount(MOUNT_POINT, debug=DEBUG)
     else:
-        raise IOError('Path "%s" does not exist.' % MOUNT_POINT)
+        raise OSError('Path "%s" does not exist.' % MOUNT_POINT)

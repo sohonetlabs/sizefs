@@ -72,7 +72,10 @@ class SizefsFuse(Operations):
         self._add_default_files("/ones")
         self.mkdir("/alpha_num", (S_IFDIR | 0o0664))
         self.setxattr(
-            "/alpha_num", "user.generator", SizeFSGeneratorType.ALPHA_NUM, None
+            "/alpha_num",
+            "user.generator",
+            SizeFSGeneratorType.ALPHA_NUM,
+            None,
         )
         self._add_default_files("/alpha_num")
 
@@ -210,7 +213,8 @@ class SizefsFuse(Operations):
         """
         path_xattrs = self.xattrs.get(path, {})
         xattr_names = map(
-            lambda xa: xa if xa.startswith("user.") else xa[5:], path_xattrs
+            lambda xa: xa if xa.startswith("user.") else xa[5:],
+            path_xattrs,
         )
         return xattr_names
 
@@ -477,7 +481,8 @@ class SizefsFuse(Operations):
             return genr
         else:
             logging.log(
-                logging.WARNING, "Unknown generator %s for %s" % (generator, path)
+                logging.WARNING,
+                "Unknown generator {} for {}".format(generator, path),
             )
             self.xattrs[path]["user.generator"] = SizeFSGeneratorType.ONES
             return SizeFSOneGen()
@@ -489,7 +494,10 @@ class SizefsFuse(Operations):
             logging.log(logging.DEBUG, "Starting Debug Logging")
 
             return FUSE(
-                SizeFSLogging(), mount_point, nolocalcaches=True, foreground=True
+                SizeFSLogging(),
+                mount_point,
+                nolocalcaches=True,
+                foreground=True,
             )
         else:
             return FUSE(SizefsFuse(), mount_point, nolocalcaches=True, foreground=False)

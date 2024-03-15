@@ -14,20 +14,20 @@ from string import ascii_lowercase, ascii_uppercase, digits
 ONE_K = 1000
 
 FILE_REGEX = re.compile(
-    "^(?P<size>[0-9]+(\.[0-9])?)(?P<size_si>[EPTGMKB])((?P<operator>[\+|\-])"
-    "(?P<shift>\d+)"
-    "(?P<shift_si>[EPTGMKB]))?$"
+    "^(?P<size>[0-9]+(\\.[0-9])?)(?P<size_si>[EPTGMKB])((?P<operator>[\\+|\\-])"
+    "(?P<shift>\\d+)"
+    "(?P<shift_si>[EPTGMKB]))?$",
 )
 
 
-class SizeFSGeneratorType(object):
+class SizeFSGeneratorType:
     ZEROS = "zeros"
     ONES = "ones"
     ALPHA_NUM = "alpha_num"
     REGEX = "regex"
 
 
-class SizeFSGen(object):
+class SizeFSGen:
     """
     Generate Zeros
     """
@@ -64,7 +64,7 @@ class SizeFSZeroGen(SizeFSGen):
     CHARS = "0"
 
     def __init__(self):
-        super(SizeFSZeroGen, self).__init__()
+        super().__init__()
         self.chars = self.CHARS
 
 
@@ -76,7 +76,7 @@ class SizeFSOneGen(SizeFSGen):
     CHARS = "1"
 
     def __init__(self):
-        super(SizeFSOneGen, self).__init__()
+        super().__init__()
         self.chars = self.CHARS
 
 
@@ -89,7 +89,7 @@ class SizeFSAlphaNumGen(SizeFSGen):
     CHARS = ascii_uppercase + digits + ascii_lowercase
 
     def __init__(self):
-        super(SizeFSAlphaNumGen, self).__init__()
+        super().__init__()
         self.chars = "".join(random.choice(self.CHARS) for _ in range(self.NUM_CHARS))
 
     def read(self, start, end):
@@ -99,7 +99,7 @@ class SizeFSAlphaNumGen(SizeFSGen):
             return ""
 
 
-class FastRandom(object):
+class FastRandom:
     """
     random itself is too slow for our purposes, so we use random to populate
     a small list of randomly generated numbers that can be used in each call
@@ -138,7 +138,7 @@ class XegerError(Exception):
         return repr(self.value)
 
 
-class XegerGen(object):
+class XegerGen:
     """
     The generator uses up to 4 regular expressions to generate the contents
     of a file defined below:
@@ -197,7 +197,13 @@ class XegerGen(object):
     reserved_chars = ["[", "]", "{", "}", "*", "+", "?"]
 
     def __init__(
-        self, size, filler=None, prefix=None, suffix=None, padder=None, max_random=10
+        self,
+        size,
+        filler=None,
+        prefix=None,
+        suffix=None,
+        padder=None,
+        max_random=10,
     ):
         self._size = size
         self._end_last_read = 0
@@ -249,7 +255,7 @@ class XegerGen(object):
             logging.error(
                 "Prefix and suffix combination is longer than"
                 "the requested size of the file. One or both will"
-                "be truncated"
+                "be truncated",
             )
 
         self._get_filler = self._filler.generate
@@ -268,7 +274,7 @@ class XegerGen(object):
         if end > self._size - 1:
             logging.debug(
                 "Read beyond end of generator requested - resetting"
-                "requested end to size of generator"
+                "requested end to size of generator",
             )
             end = self._size - 1
 
@@ -344,7 +350,7 @@ class XegerGen(object):
         return "".join(pad)[:size], size
 
 
-class Xeger(object):
+class Xeger:
     """
     Parses a given regex pattern and yields content on demand.
 
@@ -361,7 +367,7 @@ class Xeger(object):
         self.generate = self._pattern.generate
 
 
-class XegerPattern(object):
+class XegerPattern:
     """
     Parses a given pattern into a list of XegerExpressions
 
@@ -390,13 +396,14 @@ class XegerPattern(object):
         new_item_count = 0
         for expression in self._expressions:
             new_items, generated_content_length = expression.generate(
-                generated_content, generated_content_length
+                generated_content,
+                generated_content_length,
             )
             new_item_count += new_items
         return new_item_count, generated_content_length
 
 
-class XegerExpression(object):
+class XegerExpression:
     """
     Parses an Expression from a list of input characters
     """
@@ -501,21 +508,23 @@ class XegerExpression(object):
             mult = self._multiplier
             for x in range(mult):
                 new_items, generated_content_length = self._generator.generate(
-                    generated_content, generated_content_length
+                    generated_content,
+                    generated_content_length,
                 )
                 new_item_count += new_items
         else:
             mult = self._multiplier.value()
             for x in range(mult):
                 new_items, generated_content_length = self._generator.generate(
-                    generated_content, generated_content_length
+                    generated_content,
+                    generated_content_length,
                 )
                 new_item_count += new_items
 
         return new_item_count, generated_content_length
 
 
-class XegerMultiplier(object):
+class XegerMultiplier:
     """
     Represents a multiplier
     """
@@ -539,7 +548,7 @@ class XegerMultiplier(object):
                     self.is_random = False
                     try:
                         self._constant = int("".join(mult))
-                    except:
+                    except Exception:
                         raise XegerError("Multiplier must be a number")
                     return
                 else:
@@ -576,7 +585,7 @@ class XegerMultiplier(object):
             return self._constant
 
 
-class XegerSequence(object):
+class XegerSequence:
     """
     Simple generator, just returns the sequence on each call to generate
     """
@@ -591,7 +600,7 @@ class XegerSequence(object):
         return 1, generated_content_length
 
 
-class XegerSet(object):
+class XegerSet:
     """
     Set generator, parses an input list for a set and returns a single element
     on each call to generate

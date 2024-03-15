@@ -84,7 +84,11 @@ def test_padding():
     assert contents.endswith("5long")
     # Longer padding and suffix
     generator = XegerGen(
-        64, filler="55555", padder="longer", max_random=10, suffix="9999999999"
+        64,
+        filler="55555",
+        padder="longer",
+        max_random=10,
+        suffix="9999999999",
     )
     contents = generator.read(0, 63)
     assert contents.endswith("5long9999999999")

@@ -1,4 +1,5 @@
-import mock
+from unittest import mock
+
 import pytest
 from fuse import FuseOSError
 
@@ -38,35 +39,52 @@ def test_sfs_fuse_create(sfs_fuse):
     assert sfs_fuse.files["/10B"]["attrs"]["st_ctime"]
     assert sfs_fuse.files["/10B"]["attrs"]["st_mtime"]
     assert sfs_fuse.files["/10B"]["attrs"]["st_atime"]
-    assert type(sfs_fuse.files["/10B"]["generator"]) == SizeFSOneGen
+    assert type(sfs_fuse.files["/10B"]["generator"]) is SizeFSOneGen
 
 
 def test_sfs_fuse_get_attrs_file(sfs_fuse):
     sfs_fuse.create("/10B", "mode")
-    assert set(sfs_fuse.getattr("/10B").keys()) == set(
-        ["st_atime", "st_ctime", "st_mtime", "st_size", "st_mode", "st_nlink"]
-    )
+    assert set(sfs_fuse.getattr("/10B").keys()) == {
+        "st_atime",
+        "st_ctime",
+        "st_mtime",
+        "st_size",
+        "st_mode",
+        "st_nlink",
+    }
 
 
 def test_sfs_fuse_get_attrs_folder(sfs_fuse):
     sfs_fuse.create("/10B", "mode")
-    assert set(sfs_fuse.getattr("/").keys()) == set(
-        ["st_atime", "st_ctime", "st_mtime", "st_mode", "st_nlink"]
-    )
+    assert set(sfs_fuse.getattr("/").keys()) == {
+        "st_atime",
+        "st_ctime",
+        "st_mtime",
+        "st_mode",
+        "st_nlink",
+    }
 
 
 def test_sfs_fuse_get_attrs_current_folder(sfs_fuse):
     sfs_fuse.create("/10B", "mode")
-    assert set(sfs_fuse.getattr("/.").keys()) == set(
-        ["st_atime", "st_ctime", "st_mtime", "st_mode", "st_nlink"]
-    )
+    assert set(sfs_fuse.getattr("/.").keys()) == {
+        "st_atime",
+        "st_ctime",
+        "st_mtime",
+        "st_mode",
+        "st_nlink",
+    }
 
 
 def test_sfs_fuse_get_attrs_prev_folder(sfs_fuse):
     sfs_fuse.create("/zeros/10B", "mode")
-    assert set(sfs_fuse.getattr("/zeros/..").keys()) == set(
-        ["st_atime", "st_ctime", "st_mtime", "st_mode", "st_nlink"]
-    )
+    assert set(sfs_fuse.getattr("/zeros/..").keys()) == {
+        "st_atime",
+        "st_ctime",
+        "st_mtime",
+        "st_mode",
+        "st_nlink",
+    }
 
 
 def test_sfs_fuse_get_attrs_errors(sfs_fuse):
@@ -101,21 +119,21 @@ def test_sfs_fuse_get_xattrs(sfs_fuse):
 
     sfs_fuse.xattrs = {"path": {"user.attr1": "value1", "user.attr2": "value2"}}
 
-    assert sfs_fuse.getxattr("path", "attr1") is "value1"
-    assert sfs_fuse.getxattr("path", "user.attr2") is "value2"
+    assert sfs_fuse.getxattr("path", "attr1") == "value1"
+    assert sfs_fuse.getxattr("path", "user.attr2") == "value2"
 
 
 def test_sfs_fuse_list_xattrs(sfs_fuse):
 
     sfs_fuse.xattrs = {"path": {"xxxx.attr1": "value1", "user.attr2": "value2"}}
 
-    assert set(sfs_fuse.listxattr("path")) == set(["attr1", "user.attr2"])
+    assert set(sfs_fuse.listxattr("path")) == {"attr1", "user.attr2"}
 
 
 def test_sfs_fuse_get_xattrs_apple(sfs_fuse):
     sfs_fuse.xattrs = {"path": {}}
     with pytest.raises(FuseOSError):
-        assert sfs_fuse.getxattr("path", "com.apple.attr1") is "value1"
+        assert sfs_fuse.getxattr("path", "com.apple.attr1") == "value1"
 
 
 def test_sfs_fuse_get_xattrs_errors(sfs_fuse):
@@ -161,9 +179,15 @@ def test_sfs_fuse_read(sfs_fuse):
 def test_sfs_fuse_readdir_root(sfs_fuse):
     sfs_fuse.create("/10B", "mode")
     sfs_fuse.create("/20B", "mode")
-    assert set(sfs_fuse.readdir("/", None)) == set(
-        [".", "..", "zeros", "ones", "alpha_num", "10B", "20B"]
-    )
+    assert set(sfs_fuse.readdir("/", None)) == {
+        ".",
+        "..",
+        "zeros",
+        "ones",
+        "alpha_num",
+        "10B",
+        "20B",
+    }
 
 
 def test_sfs_fuse_readdir_folder(sfs_fuse):
@@ -171,7 +195,7 @@ def test_sfs_fuse_readdir_folder(sfs_fuse):
     sfs_fuse.create("/dir/10B", "mode")
     sfs_fuse.create("/dir/20B", "mode")
 
-    assert set(sfs_fuse.readdir("/dir", None)) == set([".", "..", "10B", "20B"])
+    assert set(sfs_fuse.readdir("/dir", None)) == {".", "..", "10B", "20B"}
 
 
 def test_sfs_fuse_removexattr(sfs_fuse):
@@ -240,7 +264,7 @@ def test_sfs_fuse_rename_with_files(sfs_fuse):
     sfs_fuse.rename("/dir1", "/dir2")
 
     assert sfs_fuse.folders["/dir2"]
-    assert type(sfs_fuse.files["/dir2/10B"]["generator"]) == SizeFSOneGen
+    assert type(sfs_fuse.files["/dir2/10B"]["generator"]) is SizeFSOneGen
     assert "/dir1" not in sfs_fuse.folders
 
 
