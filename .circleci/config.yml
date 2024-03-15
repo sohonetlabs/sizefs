@@ -18,21 +18,19 @@ jobs:
       - python/install-packages:
           pkg-manager: poetry
       - run:
-          command: |
-            poetry install
-            sudo apt-get update
-            sudo apt-get install -y libfuse-dev
-          name: Install dependencies
-      - run:
-          command: |
-            poetry run pytest
-          name: Run tests
+          name: Install python dependencies
+          command: poetry install
   pytest:
     executor: python
     steps:
       - checkout
       - python/install-packages:
           pkg-manager: poetry
+      - run:
+          name: Install apt dependencies
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y libfuse-dev
       - run:
           command: |
             poetry run pytest
@@ -51,5 +49,6 @@ jobs:
 workflows:
   main:
     jobs:
-      - pytest
+      - build
+      - pytest: {requires: [build]}
       - linting
