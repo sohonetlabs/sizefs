@@ -35,7 +35,7 @@ jobs:
       - run:
           command: poetry run tox
       - run:
-          command: poetry run build
+          command: poetry build
   linting:
     executor: python
     steps:
