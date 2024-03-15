@@ -20,7 +20,7 @@ jobs:
       - run:
           name: Install python dependencies
           command: poetry install
-  pytest:
+  tests:
     executor: python
     steps:
       - checkout
@@ -52,5 +52,5 @@ workflows:
   main:
     jobs:
       - build
-      - pytest: {requires: [build]}
-      - linting
+      - tests: {requires: [build]}
+      - linting: {requires: [build]}
