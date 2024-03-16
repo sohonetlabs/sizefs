@@ -76,8 +76,8 @@ jobs:
           pkg-manager: poetry
       - run:
           command: |
-            poetry run black .
-            poetry run isort .
+            poetry run black --check .
+            poetry run isort --check .
           name: Run linting
 workflows:
   main:
