@@ -3,10 +3,26 @@
 SizeFS
 """
 
-__all__ = ['SizeFS', 'SizeFSZeroGen']
+__all__ = ["SizeFS", "SizeFSZeroGen"]
 
-from .sizefs import SizeFS
-from .contents import (  # noqa
-    SizeFSAlphaNumGen, SizeFSZeroGen, SizeFSOneGen, SizeFSGeneratorType,
-    ONE_K, FastRandom, FILE_REGEX
+from .contents import FastRandom  # noqa
+from .contents import (
+    FILE_REGEX,
+    ONE_K,
+    SizeFSAlphaNumGen,
+    SizeFSGeneratorType,
+    SizeFSOneGen,
+    SizeFSZeroGen,
 )
+from .sizefs import SizeFS
+
+__all__ = [
+    "SizeFS",
+    "SizeFSZeroGen",
+    "SizeFSOneGen",
+    "SizeFSAlphaNumGen",
+    "SizeFSGeneratorType",
+    "FastRandom",
+    "FILE_REGEX",
+    "ONE_K",
+]

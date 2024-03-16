@@ -38,3 +38,5 @@ pip-log.txt
 
 MANIFEST
 htmlcov/
+
+venv/

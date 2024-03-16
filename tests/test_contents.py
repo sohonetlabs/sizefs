@@ -1,10 +1,15 @@
 #!/usr/bin/env python
-import pytest
 import re
 
+import pytest
+
 from sizefs.contents import (
-    XegerExpression, XegerGen, XegerError, XegerMultiplier,
-    SizeFSGen, SizeFSZeroGen,
+    SizeFSGen,
+    SizeFSZeroGen,
+    XegerError,
+    XegerExpression,
+    XegerGen,
+    XegerMultiplier,
 )
 
 __author__ = "Joel Wright, Mark McArdle"
@@ -30,12 +35,12 @@ def test_xeger_gen():
 
 def test_xeger_gen_empty_filler():
     generator = XegerGen(64, filler="", max_random=10)
-    assert generator._filler._pattern._sequence == '0'
+    assert generator._filler._pattern._sequence == "0"
 
 
 def test_xeger_gen_empty_padder():
     generator = XegerGen(64, padder="", max_random=10)
-    assert generator._padder._pattern._sequence == '0'
+    assert generator._padder._pattern._sequence == "0"
 
 
 def test_xeger_gen_empty_prefix():
@@ -49,7 +54,7 @@ def test_xeger_gen_empty_suffix():
 
 
 def test_xeger_gen_read_beyond_length():
-    generator = XegerGen(10, prefix='XX')
+    generator = XegerGen(10, prefix="XX")
     contents1 = generator.read(0, 10)
     assert contents1 == "XX00000000"
     contents2 = generator.read(0, 10)
@@ -57,13 +62,13 @@ def test_xeger_gen_read_beyond_length():
 
 
 def test_xeger_read_beyond_prefix():
-    generator = XegerGen(20, prefix='XX')
+    generator = XegerGen(20, prefix="XX")
     contents1 = generator.read(10, 20)
     assert contents1 == "0000000000"  # note no prefix
 
 
 def test_xeger_gen_read_before_beginning():
-    generator = XegerGen(10, prefix='XX')
+    generator = XegerGen(10, prefix="XX")
     contents = generator.read(-10, 10)
     assert contents == "XX00000000"
 
@@ -78,8 +83,13 @@ def test_padding():
     contents = generator.read(0, 63)
     assert contents.endswith("5long")
     # Longer padding and suffix
-    generator = XegerGen(64, filler="55555", padder="longer",
-                         max_random=10, suffix="9999999999")
+    generator = XegerGen(
+        64,
+        filler="55555",
+        padder="longer",
+        max_random=10,
+        suffix="9999999999",
+    )
     contents = generator.read(0, 63)
     assert contents.endswith("5long9999999999")
 
@@ -147,22 +157,22 @@ def test_range():
 
 
 def tests_xeger_expression_multiplier():
-    xger = XegerExpression(['a{2}b{2}c'])
-    assert xger._generator._sequence == 'a{2}b{2}c'
+    xger = XegerExpression(["a{2}b{2}c"])
+    assert xger._generator._sequence == "a{2}b{2}c"
     assert xger._constant_multiplier is None
     assert xger._multiplier is None
 
 
 def tests_xeger_multiplier_illegal_end_of_mulitplier():
     with pytest.raises(XegerError):
-        XegerMultiplier(['}'])
+        XegerMultiplier(["}"])
 
 
 def tests_xeger_multiplier_illegal_pattern():
     with pytest.raises(XegerError):
-        XegerMultiplier(['{', '*'])
+        XegerMultiplier(["{", "*"])
 
 
 def tests_xeger_multiplier_illegal_end():
     with pytest.raises(XegerError):
-        XegerMultiplier(['{'])
+        XegerMultiplier(["{"])

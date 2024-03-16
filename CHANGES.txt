@@ -4,3 +4,4 @@ v0.2.1, 20/10/2013 -- Bug fix release
 v0.2.2, 20/10/2013 -- Fix Debian/python2.6 issues
 v0.2.5, 08/02/2014 -- Fix pypi package
 v0.3.0, 24/03/2014 -- Fixes to allow usage without FUSE, more test coverage
+v0.4.0, 24/03/2014 -- Upgrade to python 3.9+
