@@ -52,8 +52,6 @@ jobs:
           command: poetry run pytest --cov=sizefs
       - run:
           command: poetry run tox -e << parameters.python-version >>
-      - run:
-          command: poetry build
   tests-3-9:
     <<: *test-template
     executor: python3-9
@@ -93,5 +91,5 @@ workflows:
       - build:
           {
             requires:
-              [setup, tests-3-9, tests-3-10, tests-3-11, tests-3-12, linting],
+              [tests-3-9, tests-3-10, tests-3-11, tests-3-12, linting],
           }
